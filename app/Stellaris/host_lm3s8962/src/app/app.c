@@ -18,9 +18,6 @@
  * ------------------------------------------------------------------------------------------------------
  */
 static OS_STK  Task_StartStk[TASK_START_STK_SIZE];
-OS_EVENT		*App_LcdMbox;
-OS_EVENT		*CC2520_RxMbox;
-OS_EVENT		*NET_RfMbox;
 
 
 /* ------------------------------------------------------------------------------------------------------
@@ -28,7 +25,6 @@ OS_EVENT		*NET_RfMbox;
  * ------------------------------------------------------------------------------------------------------
  */
 static  void  App_TaskStart (void *p_arg);
-static  void  App_EventCreate (void);
 
 
 /* ------------------------------------------------------------------------------------------------------
@@ -61,32 +57,9 @@ int main(void)
  * Argument(s) : none.
  *
  */
-static  void  App_EventCreate (void)
-{
-	App_LcdMbox = OSMboxCreate((void *)0);							/* Create LCD dispaly event Mbox. */
-	CC2520_RxMbox = OSMboxCreate((void *)0);
-	NET_RfMbox = OSMboxCreate((void *)0);
-}
-
-/* ------------------------------------------------------------------------------------------------------
- *									App_TaskStart()
- *
- * Description : Task start function.
- *
- * Argument(s) : none.
- *
- */
 static  void  App_TaskCreate (void)
 {
 	TaskTcpip_Create();												/* Create lwIP task and init.*/
-
-#ifdef LCD
-	TaskLCD_Create();												/* Create LCD task.*/
-#endif
-	
-#ifdef CC2520
-	TaskCC2520_Create();											/* Create CC2520 task.*/
-#endif
 }
 
 /* ------------------------------------------------------------------------------------------------------
@@ -105,7 +78,7 @@ static  void  App_TaskStart (void *p_arg)
 	
 	lwIP_init();													/* Initialise lwIP stack. */
 	
-	App_EventCreate();
+	//App_EventCreate();
 	
 	App_TaskCreate();
 	

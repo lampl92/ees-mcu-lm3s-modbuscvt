@@ -38,20 +38,12 @@ void BSP_Init(void)
     //
 	BSP_SysclkInit();
 	
-	//
-    // Enable the LED.
-    //
-	BSP_LedInit();
 
 	//
     // Enable the Uart.
     //
 	BSP_UartInit();
 	
-	//
-    // Enable the SSI0.
-    //
-	BSP_SSI0_Init();
 	
 	//
     // Enable the Ethernet.

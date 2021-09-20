@@ -1,0 +1,11 @@
+.\obj\rit128x96x4.o: ..\..\src\bsp\rit128x96x4.c
+.\obj\rit128x96x4.o: ..\..\src\drv\inc/hw_ssi.h
+.\obj\rit128x96x4.o: ..\..\src\drv\inc/hw_memmap.h
+.\obj\rit128x96x4.o: ..\..\src\drv\inc/hw_sysctl.h
+.\obj\rit128x96x4.o: ..\..\src\drv\inc/hw_types.h
+.\obj\rit128x96x4.o: ..\..\src\drv\driverlib/debug.h
+.\obj\rit128x96x4.o: ..\..\src\drv\driverlib/gpio.h
+.\obj\rit128x96x4.o: ..\..\src\drv\driverlib/pin_map.h
+.\obj\rit128x96x4.o: ..\..\src\drv\driverlib/ssi.h
+.\obj\rit128x96x4.o: ..\..\src\drv\driverlib/sysctl.h
+.\obj\rit128x96x4.o: ..\..\src\bsp\rit128x96x4.h

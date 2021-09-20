@@ -25,7 +25,7 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/timer.h"
 #include "utils/ustdlib.h"
-
+#include "utils/uartstdio.h"
 //-----------------------BSP driver---------------------------------
 #include "bsp.h"
 #include "hal_rf.h"

@@ -16,7 +16,7 @@
 #define SOCK_HOSR_PORT		8090
 #endif
 
-#define BACKLOG				1
+#define BACKLOG				3
 #define BUF_SIZE			50
 
 #define SOCKET_NEW			1

@@ -1,0 +1,17 @@
+.\obj\mac_hw.o: ..\..\src\mac\mac_hw.c
+.\obj\mac_hw.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\obj\mac_hw.o: ..\..\src\bsp\hal_rf.h
+.\obj\mac_hw.o: ..\..\src\bsp\hal_types.h
+.\obj\mac_hw.o: ..\..\src\mac\mac.h
+.\obj\mac_hw.o: ..\..\src\drv\inc/hw_ints.h
+.\obj\mac_hw.o: ..\..\src\drv\inc/hw_memmap.h
+.\obj\mac_hw.o: ..\..\src\drv\inc/hw_types.h
+.\obj\mac_hw.o: ..\..\src\drv\inc/hw_sysctl.h
+.\obj\mac_hw.o: ..\..\src\drv\driverlib/gpio.h
+.\obj\mac_hw.o: ..\..\src\drv\driverlib/pin_map.h
+.\obj\mac_hw.o: ..\..\src\drv\driverlib/interrupt.h
+.\obj\mac_hw.o: ..\..\src\drv\driverlib/sysctl.h
+.\obj\mac_hw.o: ..\..\src\os\uCOS-II\ucos_ii.h
+.\obj\mac_hw.o: ..\..\src\app\app_cfg.h
+.\obj\mac_hw.o: ..\..\src\app\os_cfg.h
+.\obj\mac_hw.o: ..\..\src\os\uCOS-II\Ports\os_cpu.h

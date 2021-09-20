@@ -6,6 +6,7 @@
  * -------------------------------------------------------------------------------------------------------
  */
 #include <stdint.h>
+#include <string.h>
 
 #include "app_cfg.h"
 #include "net_tcpip.h"
@@ -26,6 +27,7 @@
 #include "driverlib/pin_map.h"
 #include "utils/lwiplib.h"
 #include "utils/ustdlib.h"
+#include "utils/uartstdio.h"
 
 #include "rit128x96x4.h"
 
@@ -75,6 +77,21 @@ void lwIP_init(void)
 	g_bNetStatus = NETS_INIT;
 }
 
+void stringtoip(unsigned long ipaddr, char *str)
+{
+    char pucBuf[16];
+    unsigned char *pucTemp = (unsigned char *)&ipaddr;
+		if(str == NULL)
+			return;
+    //
+    // Convert the IP Address into a string.
+    //
+    usprintf(pucBuf, "%d.%d.%d.%d", pucTemp[0], pucTemp[1], pucTemp[2],
+             pucTemp[3]);
+		memcpy(str, pucBuf, 16);
+		return;
+}
+
 /* ------------------------------------------------------------------------------------------------------
  *									TcpClientTask()
  *
@@ -86,7 +103,7 @@ void lwIP_init(void)
 static void TcpClientMainProc(void)
 {
 	struct in_addr  g_sClientIP;
-	
+	char str[16];
 	switch(g_bNetStatus)
 	{
 	case NETS_INIT:
@@ -96,8 +113,21 @@ static void TcpClientMainProc(void)
 			OSTimeDly(10);
 		}while(0 == g_sClientIP.s_addr);
 
-		OSMboxPost(App_LcdMbox, (void *)&g_sClientIP.s_addr);		/* Send lcd txt.*/
+		//OSMboxPost(App_LcdMbox, (void *)&g_sClientIP.s_addr);		/* Send lcd txt.*/
+		UARTprintf("Get IP completed: \r\n");
+		memset(str, 0, 16);
+		stringtoip(g_sClientIP.s_addr, str);
+		UARTprintf("IP: %s \r\n",str);
 		
+		g_sClientIP.s_addr = lwIPLocalNetMaskGet();
+		memset(str, 0, 16);
+		stringtoip(g_sClientIP.s_addr, str);
+		UARTprintf("NetMask: %s \r\n",str);
+		
+		g_sClientIP.s_addr = lwIPLocalGWAddrGet();
+		memset(str, 0, 16);
+		stringtoip(g_sClientIP.s_addr, str);
+		UARTprintf("GWAddr: %s \r\n",str);
 		g_bNetStatus = NETS_LOCIP;									/* Net mode charge LOCIP.*/
 	
 		TaskSocket_Create();										/* Create Socket task and init.*/
@@ -138,7 +168,7 @@ static void TcpClientTask(void *pArg)
 	INT8U mac[20];
 	
 	lwIPLocalMACGet(mac);
-
+	UARTprintf("MACAddr: %02X:%02X:%02X:%02X:%02X:%02X\r\n", mac[0],mac[1],mac[2],mac[3],mac[4],mac[5]);
 	for(;;)
 	{
         TcpClientMainProc();
@@ -156,11 +186,9 @@ static void TcpClientTask(void *pArg)
  */
 void TaskTcpip_Create(void)
 {
-	//创建TCP/IP应用任务
 	OSTaskCreate(TcpClientTask,
 				 (void *)0,
 				 &Task_Eth_Stk[TASK_NET_CLIENT_STACK_SIZE-1],
 				 TASK_NET_CLIENT_PRIORITY);
-//	sys_thread_new("TcpClt", TcpClientTask, NULL, TASK_UDP_SERVER_STACK_SIZE, TASK_UDP_SERVER_PRIORITY);
 }
 
