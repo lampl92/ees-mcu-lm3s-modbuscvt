@@ -6,13 +6,13 @@
 *********************************************************************************************************
 */
 #include <stdint.h>
+#include <string.h>
 #include "network.h"
 #include "app_cfg.h"
-#include "rit128x96x4.h"
 #include "utils/lwiplib.h"
 #include "utils/ustdlib.h"
 #include "ping.h"
-
+#include "utils/uartstdio.h"
 #include "inc/hw_ints.h"
 #include "inc/hw_ethernet.h"
 #include "inc/hw_memmap.h"
@@ -24,7 +24,7 @@
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/pin_map.h"
-
+#include "modbus.h"
 
 /* ------------------------------------------------------------------------------------------------------
  *											Local Variable
@@ -39,9 +39,20 @@ unsigned char GwWayAddr[] = MY_GATEWAY_ID;
 
 unsigned char g_bNetStatus;
 
-
-void DisplayIPAddress(unsigned long ipaddr, unsigned long ulCol,
-                 unsigned long ulRow);
+void stringtoip(unsigned long ipaddr, char *str)
+{
+    char pucBuf[16];
+    unsigned char *pucTemp = (unsigned char *)&ipaddr;
+		if(str == NULL)
+			return;
+    //
+    // Convert the IP Address into a string.
+    //
+    usprintf(pucBuf, "%d.%d.%d.%d", pucTemp[0], pucTemp[1], pucTemp[2],
+             pucTemp[3]);
+		memcpy(str, pucBuf, 16);
+		return;
+}
 /* ------------------------------------------------------------------------------------------------------
  *									lwIP_init()
  *
@@ -76,7 +87,7 @@ err_t lwIP_init(void)
 static void TcpClientMainProc(void)
 {
 	struct in_addr  g_sClientIP;
-	
+	char str[16];
 	switch(g_bNetStatus)
 	{
 	case NETS_INIT:
@@ -86,16 +97,24 @@ static void TcpClientMainProc(void)
 			vTaskDelay(10);
 		}while(0 == g_sClientIP.s_addr);//获取DHCP分配的IP地址
 		
-		// Enable LCD
-		RIT128x96x4Enable(1000000);
-		DisplayIPAddress(g_sClientIP.s_addr, 36, 16);
-		g_sClientIP.s_addr = lwIPLocalNetMaskGet();//获取子网掩码
-        DisplayIPAddress(g_sClientIP.s_addr, 36, 24);
-        g_sClientIP.s_addr = lwIPLocalGWAddrGet();//获取网关
-        DisplayIPAddress(g_sClientIP.s_addr, 36, 32);
-		//Disable LCD
-        RIT128x96x4Disable();
+		UARTprintf("Get IP completed: \r\n");
+		memset(str, 0, 16);
+		stringtoip(g_sClientIP.s_addr, str);
+		UARTprintf("IP: %s \r\n",str);
+		
+		g_sClientIP.s_addr = lwIPLocalNetMaskGet();
+		memset(str, 0, 16);
+		stringtoip(g_sClientIP.s_addr, str);
+		UARTprintf("NetMask: %s \r\n",str);
+		
+		g_sClientIP.s_addr = lwIPLocalGWAddrGet();
+		memset(str, 0, 16);
+		stringtoip(g_sClientIP.s_addr, str);
+		UARTprintf("GWAddr: %s \r\n",str);
 		g_bNetStatus = NETS_LOCIP;
+		UARTprintf("free mem:%d \r\n", xPortGetFreeHeapSize());
+		
+		modbus_init();
 		break;
 
 	case NETS_LOCIP:
@@ -181,25 +200,3 @@ void NetServerInit(void)
 
 
 
-//*****************************************************************************
-//
-// Display an lwIP type IP Address.
-//
-//*****************************************************************************
-void DisplayIPAddress(unsigned long ipaddr, unsigned long ulCol,
-                 unsigned long ulRow)
-{
-    char pucBuf[16];
-    unsigned char *pucTemp = (unsigned char *)&ipaddr;
-
-    //
-    // Convert the IP Address into a string.
-    //
-    usprintf(pucBuf, "%d.%d.%d.%d", pucTemp[0], pucTemp[1], pucTemp[2],
-             pucTemp[3]);
-
-    //
-    // Display the string.
-    //
-    RIT128x96x4StringDraw(pucBuf, ulCol, ulRow, 15);
-}

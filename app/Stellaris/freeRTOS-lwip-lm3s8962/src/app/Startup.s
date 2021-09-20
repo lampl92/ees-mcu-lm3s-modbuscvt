@@ -82,6 +82,7 @@ __heap_limit
 		EXTERN  xPortPendSVHandler
 		EXTERN  xPortSysTickHandler
 		EXTERN  lwIPEthernetIntHandler
+		EXTERN  deviceDebugHander
 ;******************************************************************************
 ;
 ; The vector table.
@@ -93,15 +94,15 @@ __Vectors
         DCD     Reset_Handler               ; Reset Handler
         DCD     NmiSR                       ; NMI Handler
         DCD     FaultISR                    ; Hard Fault Handler
-        DCD     IntDefaultHandler           ; MPU Fault Handler
-        DCD     IntDefaultHandler           ; Bus Fault Handler
-        DCD     IntDefaultHandler           ; Usage Fault Handler
+        DCD     deviceDebugHander           ; MPU Fault Handler
+        DCD     deviceDebugHander           ; Bus Fault Handler
+        DCD     deviceDebugHander           ; Usage Fault Handler
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved
         DCD     vPortSVCHandler             ; SVCall handler
-        DCD     IntDefaultHandler           ; Debug monitor handler
+        DCD     deviceDebugHander           ; Debug monitor handler
         DCD     0                           ; Reserved
         DCD     xPortPendSVHandler          ; PendSV Handler
         DCD     xPortSysTickHandler         ; SysTick Handler

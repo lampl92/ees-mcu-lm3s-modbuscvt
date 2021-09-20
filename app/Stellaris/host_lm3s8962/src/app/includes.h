@@ -31,7 +31,7 @@
 #include "hal_rf.h"
 #include "hal_cc2520.h"
 #include "rit128x96x4.h"
-
+#include "modbus.h"
 //-----------------------OS files-----------------------------------
 #include  <ucos_ii.h>
 

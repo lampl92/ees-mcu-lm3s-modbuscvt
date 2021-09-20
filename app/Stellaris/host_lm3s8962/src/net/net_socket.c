@@ -307,6 +307,7 @@ void sockex_selects(void *arg)
 void TaskSocket_Create(void)
 {
 		//sys_thread_new("sockex_testrecv", sockex_testrecv, NULL, 128, 3);
-		sys_thread_new("sockex_selects", sockex_selects, NULL, 256, 3);
+		//sys_thread_new("sockex_selects", sockex_selects, NULL, 256, 2);
+		sys_thread_new("modbus_task", modbus_task, NULL, 1024, 2);
 }
 

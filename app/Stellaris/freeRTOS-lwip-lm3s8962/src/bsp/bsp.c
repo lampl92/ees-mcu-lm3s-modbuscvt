@@ -28,11 +28,6 @@ void BSP_Init(void)
     SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
                    SYSCTL_XTAL_8MHZ);
 	
-	//
-    // Enable the LED.
-    //
-	BSP_LedInit();
-	
 	
     //
     // Enable the peripherals used by this example.
@@ -50,6 +45,6 @@ void BSP_Init(void)
     //
     UARTStdioInit(0);
 	
-	UARTprintf("BSP initialise\n");
+		UARTprintf("BSP initialise\n");
 }
 

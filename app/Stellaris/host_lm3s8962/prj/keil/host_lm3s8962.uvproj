@@ -51,7 +51,7 @@
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
-          <DebugInformation>1</DebugInformation>
+          <DebugInformation>0</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
           <ListingPath>.\lst\</ListingPath>
           <HexFormatSelection>1</HexFormatSelection>
@@ -352,7 +352,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>4</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>0</OneElfS>
@@ -364,7 +364,7 @@
             <wLevel>0</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
+            <uC99>1</uC99>
             <uGnu>0</uGnu>
             <useXO>0</useXO>
             <v6Lang>1</v6Lang>
@@ -378,7 +378,7 @@
               <MiscControls></MiscControls>
               <Define>rvmdk PART_LM3S8962</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\src\app;..\..\src\drv;..\..\src\bsp;..\..\src\net;..\..\src\os\uCOS-II;..\..\src\os\uCOS-II\Ports;..\..\src\os\uC-LIB;..\..\src\lwip-1.4.0;..\..\src\lwip-1.4.0\src\include;..\..\src\lwip-1.4.0\src\include\ipv4;..\..\src\lwip-1.4.0\ports\stellaris\include;..\..\src\lwip-1.4.0\ports\stellaris\netif;..\..\src\mac</IncludePath>
+              <IncludePath>..\..\src\app;..\..\src\drv;..\..\src\bsp;..\..\src\net;..\..\src\os\uCOS-II;..\..\src\os\uCOS-II\Ports;..\..\src\os\uC-LIB;..\..\src\lwip-1.4.0;..\..\src\lwip-1.4.0\src\include;..\..\src\lwip-1.4.0\src\include\ipv4;..\..\src\lwip-1.4.0\ports\stellaris\include;..\..\src\lwip-1.4.0\ports\stellaris\netif;..\..\src\mac;..\..\src\lightmodbus</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -400,16 +400,16 @@
             </VariousControls>
           </Aads>
           <LDads>
-            <umfTarg>1</umfTarg>
-            <Ropi>0</Ropi>
-            <Rwpi>0</Rwpi>
+            <umfTarg>0</umfTarg>
+            <Ropi>1</Ropi>
+            <Rwpi>1</Rwpi>
             <noStLib>0</noStLib>
             <RepFail>1</RepFail>
             <useFile>0</useFile>
             <TextAddressRange>0x00000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile></ScatterFile>
+            <ScatterFile>.\obj\lm3s8962_cc2520.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc>--entry Reset_Handler</Misc>
@@ -447,6 +447,31 @@
               <FileType>2</FileType>
               <FilePath>..\..\src\app\Startup.s</FilePath>
             </File>
+            <File>
+              <FileName>lightmodbus.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\src\lightmodbus\lightmodbus.h</FilePath>
+            </File>
+            <File>
+              <FileName>modbus_cfg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\src\lightmodbus\modbus_cfg.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>modbus</GroupName>
+          <Files>
+            <File>
+              <FileName>modbus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\modbus.c</FilePath>
+            </File>
+            <File>
+              <FileName>modbus.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\src\app\modbus.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -466,6 +491,11 @@
               <FileName>cc2520-arch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\bsp\cc2520-arch.c</FilePath>
+            </File>
+            <File>
+              <FileName>modbus.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\src\app\modbus.h</FilePath>
             </File>
           </Files>
         </Group>

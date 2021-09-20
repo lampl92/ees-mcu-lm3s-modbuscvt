@@ -2,8 +2,8 @@
 #define __LWIPOPTS_H__
 
 #define LWIP_PROVIDE_ERRNO     		1
-
-
+#define LWIP_COMPAT_SOCKETS				0
+#define SO_REUSE	1
 #define NO_SYS                      0
 #define LWIP_SOCKET                 1
 #define LWIP_NETCONN                1
@@ -64,7 +64,7 @@
 
 /* MEM_SIZE: the size of the heap memory. If the application will send
 a lot of data that needs to be copied, this should be set high. */
-#define MEM_SIZE					(1024 * 4)//2048
+#define MEM_SIZE					(1024 * 22)//2048
 
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this

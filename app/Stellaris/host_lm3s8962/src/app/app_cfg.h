@@ -68,7 +68,7 @@
 
 
 #define  LWIP_TASK_START_PRIO                             	5
-#define  LWIP_TASK_END_PRIO                               	8
+#define  LWIP_TASK_END_PRIO                               	7
 
 /*uC/OS port task.*/
 #define  OS_PROBE_TASK_PRIO              	(OS_LOWEST_PRIO - 3)
