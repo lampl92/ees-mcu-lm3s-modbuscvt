@@ -14,6 +14,10 @@ const uint16_t UT_REGISTERS_ADDRESS_SPECIAL = 0x170;
 const uint16_t UT_REGISTERS_ADDRESS_INVALID_TID_OR_SLAVE = 0x171;
 const uint16_t UT_REGISTERS_ADDRESS_BYTE_SLEEP_5_MS = 0x173;
 
+#define MODBUS_TCP_SLAVE_POSITION 6
+#define MODBUS_TCP_HEADER_LENGHT 6
+#define MODBUS_RTU_CRC_LENGHT 2
+
 static void ModbusTask(void *pArg);
 void modbus_init(void)
 {
@@ -28,16 +32,14 @@ static void ModbusTask(void *pArg)
 		int s = -1;
 		int master_socket = -1;
     char ip[]="                ";
-    modbus_t *ctx_tcp;
-    uint8_t *query_tcp;
-		modbus_mapping_t *mb_mapping;
+    modbus_t *ctx_tcp = NULL, *ctx_rtu = NULL;
+    uint8_t *query_tcp, *query_rtu;
+		modbus_mapping_t *mb_mapping_tcp;
     int rc;
     int rc_tcp;
     int i;
 		fd_set refset;
 		fd_set rdset;
-    int lcd;
-    char buffer[10];
     int fdmax;
 		int header_length;
 	
@@ -48,40 +50,106 @@ static void ModbusTask(void *pArg)
 			UARTprintf("fail to create tcp port \r\n");
 			while(1){};
 		}
-		mb_mapping = modbus_mapping_new(
+#if 1
+		mb_mapping_tcp = modbus_mapping_new(
 		MODBUS_MAX_READ_BITS,
 		MODBUS_MAX_READ_REGISTERS,
 		MODBUS_MAX_READ_REGISTERS,
 			MODBUS_MAX_READ_REGISTERS);
-    if (mb_mapping == NULL) {
-        fprintf(stderr, "Failed to allocate the mapping: %s\n",
+    if (mb_mapping_tcp == NULL) {
+        UARTprintf("Failed to allocate the mapping: %s\n",
                 modbus_strerror(errno));
-        modbus_free(ctx_tcp);
-        return;
+        goto exit;
     }
+#endif
     query_tcp = malloc(MODBUS_TCP_MAX_ADU_LENGTH);
-
-    s = modbus_tcp_listen(ctx_tcp, 5);
+		query_rtu = malloc(MODBUS_RTU_MAX_ADU_LENGTH);
+		
+    s = modbus_tcp_listen(ctx_tcp, 1);
 		if (s == -1) {
         UARTprintf("Unable to listen TCP connection\n");
-        modbus_free(ctx_tcp);
-        return;
+        goto exit;
     } else {
     	UARTprintf("TCP listen on socket %d\r\n", s);
     }
+		modbus_tcp_accept(ctx_tcp, &s);
+		ctx_rtu = modbus_new_rtu("COM1", 115200, 'N', 8, 1);
+    if(ctx_rtu != NULL) {
+		UARTprintf("created modbus rtu\r\n");
+		}
+		modbus_set_debug(ctx_rtu, TRUE);
+		if (modbus_connect(ctx_rtu) == -1) 
+    {
+        UARTprintf("Connection failed: %s\n", modbus_strerror(errno));
+        modbus_free(ctx_rtu);
+        return;
+    }else
+		{
+			UARTprintf("RTU listenning\r\n");
+		}
      /* Clear the reference set of socket */
-    FD_ZERO(&refset);
+    //FD_ZERO(&refset);
     /* Add the server socket */
-    FD_SET(s, &refset);
-		fdmax = s;
+    //FD_SET(s, &refset);
+		//fdmax = s;
 		UARTprintf("ModbusTask is listening \r\n");
-		header_length = modbus_get_header_length(ctx_tcp);
-		UARTprintf("hlen:%d \r\n", header_length);
+#if 1
+		for(;;)
+		{
+			do 
+			{
+					rc_tcp = modbus_receive(ctx_tcp, query_tcp);
+			} 
+			while (rc_tcp == 0);
+			UARTprintf("free mem:%d \r\n", xPortGetFreeHeapSize());
+			if (rc_tcp == -1 && errno != EMBBADCRC) 
+			{
+					break;
+			}
+			modbus_set_slave(ctx_rtu, query_tcp[MODBUS_TCP_SLAVE_POSITION]);
+			modbus_send_raw_request(ctx_rtu, query_tcp + MODBUS_TCP_HEADER_LENGHT , (rc_tcp - MODBUS_TCP_HEADER_LENGHT) * sizeof(uint8_t));
+			rc = modbus_receive_confirmation(ctx_rtu, query_rtu);  
+			if (rc > 0) 
+			{
+				UARTprintf("RTU %d:", rc);
+				for(i = 0;i <  rc - MODBUS_RTU_CRC_LENGHT ; i++) 
+				{
+						query_tcp[i + MODBUS_TCP_HEADER_LENGHT] = query_rtu[i];
+						UARTprintf("[%02X]", query_rtu[i]);
+				}  
+				UARTprintf("\r\n");
+			}else
+			{
+				UARTprintf("RTU error\r\n");
+				continue;
+			}					
+			rc_tcp= rc + MODBUS_TCP_HEADER_LENGHT - MODBUS_RTU_CRC_LENGHT;
+
+			int w_s = modbus_get_socket(ctx_tcp);
+			int sent;	
+			//vTaskDelay(5);
+			sent = lwip_send(w_s, query_tcp, rc_tcp, 0);
+			if (sent == -1) 
+			{
+					UARTprintf("tcp send back failed\r\n");
+					continue;
+			}           			
+			//									rc = modbus_reply(ctx_tcp, query_tcp, rc, mb_mapping_tcp);
+			//									if (rc == -1) 
+			//									{
+			//										 UARTprintf("TCP send back failed\r\n");
+			//											continue;
+			//									} 		
+			UARTprintf("TCP send back completed\r\n");		
+		}
+#else
 		for (;;) {
+				FD_ZERO(&rdset);
         rdset = refset;
-        if (lwip_select(fdmax+1, &rdset, NULL, NULL, NULL) == -1) {
-            perror("Server select() failure.");
-            printf("Server select() failure.\r\n");
+				UARTprintf("wait for new event\r\n");
+        if (lwip_select(fdmax+1, &rdset, NULL, NULL, NULL) < 0) 
+				{
+            UARTprintf("Server select() failure.\r\n");
         }
 
         /* Run through the existing connections looking for data to be
@@ -117,73 +185,51 @@ static void ModbusTask(void *pArg)
                 }
             } else {
                 modbus_set_socket(ctx_tcp, master_socket);
-                rc = modbus_receive(ctx_tcp, query_tcp);
-                if (rc > 0) {
-                	//UARTprintf("recv at socket %d:", rc);
-                	//for(int i = 0; i < rc; i++) {
-                	//	UARTprintf("<%02X>", query_tcp[i]);
-                	//}
-                	//UARTprintf("\r\n");
-									   if (query_tcp[header_length] == 0x03) {
-											/* Read holding registers */
-					
-											if (MODBUS_GET_INT16_FROM_INT8(query_tcp, header_length + 3)
-													== UT_REGISTERS_NB_SPECIAL) {
-													printf("Set an incorrect number of values\n");
-													MODBUS_SET_INT16_TO_INT8(query_tcp, header_length + 3,
-																										UT_REGISTERS_NB_SPECIAL - 1);
-											} else if (MODBUS_GET_INT16_FROM_INT8(query_tcp, header_length + 1)
-																	== UT_REGISTERS_ADDRESS_SPECIAL) {
-													printf("Reply to this special register address by an exception\n");
-													modbus_reply_exception(ctx_tcp, query_tcp,
-																									MODBUS_EXCEPTION_SLAVE_OR_SERVER_BUSY);
-													continue;
-											} else if (MODBUS_GET_INT16_FROM_INT8(query_tcp, header_length + 1)
-																	== UT_REGISTERS_ADDRESS_INVALID_TID_OR_SLAVE) {
-													const int RAW_REQ_LENGTH = 5;
-													uint8_t raw_req[] = {
-															0xFF,
-															0x03,
-															0x02, 0x00, 0x00
-													};
-					
-													printf("Reply with an invalid TID or slave\n");
-													modbus_send_raw_request(ctx_tcp, raw_req, RAW_REQ_LENGTH * sizeof(uint8_t));
-													continue;
-											} else if (MODBUS_GET_INT16_FROM_INT8(query_tcp, header_length + 1)
-																	== UT_REGISTERS_ADDRESS_SLEEP_500_MS) {
-													printf("Sleep 0.5 s before replying\n");
-													vTaskDelay(500);
-											} else if (MODBUS_GET_INT16_FROM_INT8(query_tcp, header_length + 1)
-																	== UT_REGISTERS_ADDRESS_BYTE_SLEEP_5_MS) {
-													/* Test low level only available in TCP mode */
-													/* Catch the reply and send reply byte a byte */
-													uint8_t req[] = "\x00\x1C\x00\x00\x00\x05\xFF\x03\x02\x00\x00";
-													int req_length = 11;
-													int w_s = modbus_get_socket(ctx_tcp);
-													if (w_s == -1) {
-															fprintf(stderr, "Unable to get a valid socket in special test\n");
-															continue;
-													}
-					
-													/* Copy TID */
-													req[1] = query_tcp[1];
-													for (i=0; i < req_length; i++) {
-															printf("(%.2X)", req[i]);
-															vTaskDelay(5);
-															rc = lwip_send(w_s, (const char*)(req + i), 1, MSG_NOSIGNAL);
-															if (rc == -1) {
-																	break;
-															}
-													}
-													continue;
-											}
-									}
-										rc = modbus_reply(ctx_tcp, query_tcp, rc, mb_mapping);
-										 if (rc == -1) {
-												 break;
-										 } 
-                } else if (rc == -1) {
+                rc_tcp = modbus_receive(ctx_tcp, query_tcp);
+                if (rc_tcp > 0) {
+                	UARTprintf("TCP %d:", rc_tcp);
+                	for(int i = 0; i < rc_tcp; i++) {
+                		UARTprintf("<%02X>", query_tcp[i]);
+                	}
+                	UARTprintf("\r\n");
+
+									modbus_set_slave(ctx_rtu, query_tcp[MODBUS_TCP_SLAVE_POSITION]);
+									modbus_send_raw_request(ctx_rtu, query_tcp + MODBUS_TCP_HEADER_LENGHT , (rc_tcp - MODBUS_TCP_HEADER_LENGHT) * sizeof(uint8_t));
+									rc = modbus_receive_confirmation(ctx_rtu, query_rtu);  
+									if (rc > 0) 
+									{
+										UARTprintf("RTU %d:", rc);
+										for(i = 0;i <  rc - MODBUS_RTU_CRC_LENGHT ; i++) 
+										{
+												query_tcp[i + MODBUS_TCP_HEADER_LENGHT] = query_rtu[i];
+												UARTprintf("[%02X]", query_rtu[i]);
+										}  
+										UARTprintf("\r\n");
+									}else
+									{
+										UARTprintf("RTU error\r\n");
+										continue;
+									}					
+									rc_tcp= rc + MODBUS_TCP_HEADER_LENGHT - MODBUS_RTU_CRC_LENGHT;
+
+									//int w_s = modbus_get_socket(ctx_tcp);
+									int sent;	
+									//vTaskDelay(5);
+									sent = lwip_send(master_socket, query_tcp, rc_tcp, 0);
+									if (sent == -1) 
+									{
+											UARTprintf("tcp send back failed\r\n");
+											continue;
+									}           			
+//									rc = modbus_reply(ctx_tcp, query_tcp, rc, mb_mapping_tcp);
+//									if (rc == -1) 
+//									{
+//										 UARTprintf("TCP send back failed\r\n");
+//											continue;
+//									} 		
+									UARTprintf("TCP send back completed\r\n");										
+                } else
+								{
                     /* This example server in ended on connection closing or
                      * any errors. */
                     UARTprintf("Connection closed on socket %d\n", master_socket);
@@ -199,4 +245,11 @@ static void ModbusTask(void *pArg)
             }
         }
     }
+#endif
+exit:
+		if(ctx_rtu != NULL)
+			modbus_free(ctx_rtu);
+		if(ctx_tcp != NULL)
+			modbus_free(ctx_tcp);
+		return;
 }

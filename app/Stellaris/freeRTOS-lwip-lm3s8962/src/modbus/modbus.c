@@ -944,7 +944,7 @@ int modbus_reply(modbus_t *ctx, const uint8_t *req,
         break;
     case MODBUS_FC_READ_EXCEPTION_STATUS:
         if (ctx->debug) {
-            printf("FIXME Not implemented\n");
+            UARTprintf("FIXME Not implemented\n");
         }
         errno = ENOPROTOOPT;
         

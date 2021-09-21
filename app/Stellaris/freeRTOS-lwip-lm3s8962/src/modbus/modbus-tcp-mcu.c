@@ -413,7 +413,7 @@ int modbus_tcp_listen(modbus_t *ctx, int nb_connection)
         return -1;
     }
 
-    enable = 1;
+    enable = 0;
     if (lwip_setsockopt(new_s, SOL_SOCKET, SO_REUSEADDR,
                    (char *)&enable, sizeof(enable)) == -1) {
         lwip_close(new_s);

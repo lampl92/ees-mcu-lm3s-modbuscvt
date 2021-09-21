@@ -25,7 +25,7 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/pin_map.h"
 #include "modbus.h"
-
+#include "mb_cvt.h"
 /* ------------------------------------------------------------------------------------------------------
  *											Local Variable
  * ------------------------------------------------------------------------------------------------------
@@ -94,7 +94,8 @@ static void TcpClientMainProc(void)
 		do
 		{
 			g_sClientIP.s_addr = lwIPLocalIPAddrGet();
-			vTaskDelay(10);
+			UARTprintf(".");
+			vTaskDelay(300);
 		}while(0 == g_sClientIP.s_addr);//获取DHCP分配的IP地址
 		
 		UARTprintf("Get IP completed: \r\n");

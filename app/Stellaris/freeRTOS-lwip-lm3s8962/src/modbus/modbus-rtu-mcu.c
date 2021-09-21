@@ -4,17 +4,16 @@
  *  Created on: Aug 27, 2021
  *      Author: PC
  */
-
+#include <includes.h>
 #include "modbus-rtu-mcu.h"
 
 #if PLATFORM_USED == PLATFORM_MCU
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <string.h>
 #ifndef _MSC_VER
-#include <unistd.h>
+//#include <unistd.h>
 #endif
 #include <assert.h>
 
@@ -22,10 +21,7 @@
 
 #include "modbus-rtu-private.h"
 
-#include "UART/uart.h"
-#include "DIGITAL_IO/digital_io.h"
-
-#include "fifo.h"
+#include "FiFo.h"
 
 /* Table of CRC values for high-order byte */
 static const uint8_t table_crc_hi[] = {
@@ -88,19 +84,37 @@ static const uint8_t table_crc_lo[] = {
 };
 
 
-static uint8_t rx_byte;
-
 static SFIFO rxFifo;
 
-void UART_RTU_RxInterrupt() {
-	UART_StartReceiveIRQ(&UART_RTU, &rx_byte, 1);
-	FIFO_Push(&rxFifo, rx_byte);
-	DIGITAL_IO_ToggleOutput(&LED_RTU);
-	//printf("%02X ", rx_byte);
+void
+UARTIntHandler(void)
+{
+    unsigned long ulStatus;
+
+    //
+    // Get the interrrupt status.
+    //
+    ulStatus = UARTIntStatus(UART1_BASE, true);
+
+    //
+    // Clear the asserted interrupts.
+    //
+    UARTIntClear(UART1_BASE, ulStatus);
+
+    //
+    // Loop while there are characters in the receive FIFO.
+    //
+    while(UARTCharsAvail(UART1_BASE))
+    {
+        //
+        // Read the next character from the UART and write it back to the UART.
+        //
+				FIFO_Push(&rxFifo, UARTCharGetNonBlocking(UART1_BASE));
+    }
 }
 
 void UART_RTU_NoiseDetected() {
-	printf("UART RTU Noise detected\r\n");
+	UARTprintf("UART RTU Noise detected\r\n");
 }
 
 
@@ -186,19 +200,16 @@ static int _modbus_rtu_send_msg_pre(uint8_t *req, int req_length)
 
 
 
-static ssize_t _modbus_rtu_send(modbus_t *ctx, const uint8_t *req, int req_length)
+static size_t _modbus_rtu_send(modbus_t *ctx, const uint8_t *req, int req_length)
 {
-	//printf("enter: %s\r\n", __FUNCTION__);
-	DIGITAL_IO_SetOutputHigh(&RTU_RTS_PIN);
-	UART_Transmit(&UART_RTU, (uint8_t*)req, (size_t)req_length);
-	/*for(int i = 0; i < req_length; i++) {
-		printf("%02X ", req[i]);
-	}
-	printf("\r\n");*/
-	while((XMC_UART_CH_GetStatusFlag(UART_RTU.channel) &
-			XMC_UART_CH_STATUS_FLAG_TRANSFER_STATUS_BUSY)) {}
-	DIGITAL_IO_SetOutputLow(&RTU_RTS_PIN);
-
+	int len = req_length;
+	while(len--)
+    {
+        //
+        // Write the next character to the UART.
+        //
+        UARTCharPut(UART1_BASE, *req++);
+    }
 	return req_length;
 }
 
@@ -214,7 +225,7 @@ static int _modbus_rtu_receive(modbus_t *ctx, uint8_t *req)
         ctx_rtu->confirmation_to_ignore = FALSE;
         rc = 0;
         if (ctx->debug) {
-            printf("Confirmation to ignore\n");
+            UARTprintf("Confirmation to ignore\n");
         }
     } else {
         rc = _modbus_receive_msg(ctx, req, MSG_INDICATION);
@@ -226,7 +237,7 @@ static int _modbus_rtu_receive(modbus_t *ctx, uint8_t *req)
     return rc;
 }
 
-static ssize_t _modbus_rtu_recv(modbus_t *ctx, uint8_t *rsp, int rsp_length)
+static size_t _modbus_rtu_recv(modbus_t *ctx, uint8_t *rsp, int rsp_length)
 {
 	//printf("enter: %s\r\n", __FUNCTION__);
 	return FIFO_Recv(&rxFifo, rsp, rsp_length);
@@ -243,7 +254,7 @@ static int _modbus_rtu_pre_check_confirmation(modbus_t *ctx, const uint8_t *req,
     (void)rsp_length;
     if (req[0] != rsp[0] && req[0] != MODBUS_BROADCAST_ADDRESS) {
         if (ctx->debug) {
-            printf("The responding slave %d isn't the requested slave %d\n",
+            UARTprintf("The responding slave %d isn't the requested slave %d\n",
                     rsp[0], req[0]);
         }
         errno = EMBBADSLAVE;
@@ -269,7 +280,7 @@ static int _modbus_rtu_check_integrity(modbus_t *ctx, uint8_t *msg,
      * CRC computing. */
     if (slave != ctx->slave && slave != MODBUS_BROADCAST_ADDRESS) {
         if (ctx->debug) {
-            printf("Request for slave %d ignored (not %d)\n", slave, ctx->slave);
+            UARTprintf("Request for slave %d ignored (not %d)\n", slave, ctx->slave);
         }
         /* Following call to check_confirmation handles this error */
         return 0;
@@ -283,7 +294,7 @@ static int _modbus_rtu_check_integrity(modbus_t *ctx, uint8_t *msg,
         return msg_length;
     } else {
         if (ctx->debug) {
-            printf("ERROR CRC received 0x%0X != CRC calculated 0x%0X\n",
+            UARTprintf("ERROR CRC received 0x%0X != CRC calculated 0x%0X\n",
                     crc_received, crc_calculated);
         }
 
@@ -305,11 +316,31 @@ static int _modbus_rtu_connect(modbus_t *ctx)
 		FIFO_Create(&rxFifo);
 		//UART_Init(&UART_RTU);
 		ctx->s = TRUE;
-		printf("create fifo\r\n");
+		UARTprintf("create fifo\r\n");
 	}
+	//
+	// Enable the peripherals used by this example.
+	//
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 
-	DIGITAL_IO_SetOutputLow(&RTU_RTS_PIN);
-	return UART_StartReceiveIRQ(&UART_RTU, &rx_byte, 1);
+	//
+	// Configure the UART for 115,200, 8-N-1 operation.
+	//
+	UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 115200,
+											(UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+											 UART_CONFIG_PAR_NONE));
+	//
+	// Set GPIO A0 and A1 as UART.
+	//
+	GPIOPinTypeUART(GPIO_PORTD_BASE, GPIO_PIN_2 | GPIO_PIN_3);
+	
+	//
+	// Enable the UART interrupt.
+	//
+	IntEnable(INT_UART1);
+	UARTIntEnable(UART1_BASE, UART_INT_RX | UART_INT_RT);
+	return 0;
 }
 
 static void _modbus_rtu_close(modbus_t *ctx)
@@ -338,7 +369,7 @@ static int _modbus_rtu_select(modbus_t *ctx, fd_set *rset,
 	//printf("enter: %s %d - %d - %d\r\n", __FUNCTION__, sleepRound, msSleep, length_to_read);
 
 	do {
-		osDelay(10);
+		vTaskDelay(10);
 		bufferSize = FIFO_GetCount(&rxFifo);
 		sleepRound--;
 	} while(bufferSize < length_to_read && sleepRound > 0);
@@ -388,7 +419,7 @@ modbus_t* modbus_new_rtu(const char *device,
 
     /* Check device argument */
     if (device == NULL || *device == 0) {
-        printf("The device string is empty\n");
+        UARTprintf("The device string is empty\n");
         errno = EINVAL;
         
         return NULL;
@@ -396,7 +427,7 @@ modbus_t* modbus_new_rtu(const char *device,
 
     /* Check baud argument */
     if (baud == 0) {
-        printf("The baud rate value must not be zero\n");
+        UARTprintf("The baud rate value must not be zero\n");
         errno = EINVAL;
         
         return NULL;

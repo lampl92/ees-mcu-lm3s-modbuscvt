@@ -28,7 +28,7 @@ void BSP_Init(void)
     SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
                    SYSCTL_XTAL_8MHZ);
 	
-	
+#if 1
     //
     // Enable the peripherals used by this example.
     //
@@ -44,7 +44,23 @@ void BSP_Init(void)
     // Initialize the UART as a console for text I/O.
     //
     UARTStdioInit(0);
+#else
+    //
+    // Enable the peripherals used by this example.
+    //
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
 	
+    //
+    // Set GPIO A0 and A1 as UART.
+    //
+    GPIOPinTypeUART(GPIO_PORTD_BASE, GPIO_PIN_2 | GPIO_PIN_3);
+	
+    //
+    // Initialize the UART as a console for text I/O.
+    //
+    UARTStdioInit(1);
+#endif
 		UARTprintf("BSP initialise\n");
 }
 
