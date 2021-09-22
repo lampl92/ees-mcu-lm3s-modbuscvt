@@ -423,16 +423,6 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\bsp\bsp.c</FilePath>
             </File>
-            <File>
-              <FileName>bsp_led.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\bsp\bsp_led.c</FilePath>
-            </File>
-            <File>
-              <FileName>rit128x96x4.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\src\bsp\rit128x96x4.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

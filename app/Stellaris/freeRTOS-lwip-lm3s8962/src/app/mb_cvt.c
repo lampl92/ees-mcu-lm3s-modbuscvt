@@ -40,8 +40,6 @@ static void lwModbusTask(void *pArg);
 
 static SFIFO rxFifo;
 
-static tBoolean isRecving;
-
 /* Table of CRC values for high-order byte */
 static const uint8_t table_crc_hi[] = {
     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0,
@@ -105,7 +103,6 @@ static const uint8_t table_crc_lo[] = {
 void UARTIntHandler(void)
 {
     unsigned long ulStatus;
-		isRecving = false;
     //
     // Get the interrrupt status.
     //
@@ -121,13 +118,11 @@ void UARTIntHandler(void)
     //
     while(UARTCharsAvail(UART1_BASE))
     {
-				isRecving = true;
         //
         // Read the next character from the UART and write it back to the UART.
         //
 				FIFO_Push(&rxFifo, UARTCharGetNonBlocking(UART1_BASE));
     }
-		isRecving = false;
 }
 
 static void rtu_init(void)
@@ -151,6 +146,11 @@ static void rtu_init(void)
 	GPIOPinTypeUART(GPIO_PORTD_BASE, GPIO_PIN_2 | GPIO_PIN_3);
 	
 	//
+	// Init UART Fifo
+	//
+	UARTFIFOEnable(UART1_BASE);
+	
+	//
 	// Enable the UART interrupt.
 	//
 	IntEnable(INT_UART1);
@@ -169,12 +169,14 @@ int rtu_recv(uint8_t *rsp, int rsp_length,uint16_t timeout)
 	
 	while(counter <  timeout)
 	{
-		if(isRecving == true) 
-			counter = 0;
+		//if(isRecving == true) 
+			//counter = 0;
+		if(FIFO_GetCount(&rxFifo) > 0)
+			break;
 		counter += 10;
 		vTaskDelay(10);
 	}
-	
+	vTaskDelay(50);
 	rc = FIFO_Recv(&rxFifo, rsp, rsp_length);
 	return rc;
 }
