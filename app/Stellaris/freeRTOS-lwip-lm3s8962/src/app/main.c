@@ -86,7 +86,7 @@ static void prvStartTask(void *pvParameters)
 	
 	for (;;)
 	{
-		vTaskSuspend( NULL );			//挂起这个任务
+		vTaskSuspend( NULL );			
 	}
 }
 

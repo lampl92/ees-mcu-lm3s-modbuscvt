@@ -129,6 +129,12 @@ void sys_mbox_post( sys_mbox_t *pxMailBox, void *pxMessageToPost )
 	while( xQueueSendToBack( *pxMailBox, &pxMessageToPost, portMAX_DELAY ) != pdTRUE );
 }
 
+err_t
+sys_mbox_trypost_fromisr(sys_mbox_t *q, void *msg)
+{
+  return sys_mbox_trypost(q, msg);
+}
+
 /*---------------------------------------------------------------------------*
  * Routine:  sys_mbox_trypost
  *---------------------------------------------------------------------------*

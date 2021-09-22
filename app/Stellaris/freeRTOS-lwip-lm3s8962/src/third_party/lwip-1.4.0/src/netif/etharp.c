@@ -61,9 +61,24 @@
 #endif /* PPPOE_SUPPORT */
 
 #include <string.h>
-
+#ifndef SIZEOF_ETHARP_PACKET
+#define SIZEOF_ETHARP_PACKET (SIZEOF_ETH_HDR + SIZEOF_ETHARP_HDR)
+#endif
 const struct eth_addr ethbroadcast = {{0xff,0xff,0xff,0xff,0xff,0xff}};
 const struct eth_addr ethzero = {{0,0,0,0,0,0}};
+
+#ifndef ETHADDR32_COPY
+#define ETHADDR32_COPY(src, dst)  SMEMCPY(src, dst, ETHARP_HWADDR_LEN)
+#endif
+
+/** MEMCPY-like macro to copy to/from struct eth_addr's that are no local
+ * variables and known to be 16-bit aligned within the protocol header. */
+#ifndef ETHADDR16_COPY
+#define ETHADDR16_COPY(src, dst)  SMEMCPY(src, dst, ETHARP_HWADDR_LEN)
+#endif
+#ifndef IPADDR2_COPY
+#define IPADDR2_COPY(dest, src) SMEMCPY(dest, src, sizeof(ip_addr_t))
+#endif
 
 #if LWIP_ARP /* don't build if not configured for use in lwipopts.h */
 
@@ -71,7 +86,7 @@ const struct eth_addr ethzero = {{0,0,0,0,0,0}};
  *  for ARP_TMR_INTERVAL = 5000, this is
  *  (240 * 5) seconds = 20 minutes.
  */
-#define ARP_MAXAGE 240
+//#define ARP_MAXAGE 240
 /** the time an ARP entry stays pending after first request,
  *  for ARP_TMR_INTERVAL = 5000, this is
  *  (2 * 5) seconds = 10 seconds.
@@ -169,7 +184,7 @@ static void
 free_entry(int i)
 {
   /* remove from SNMP ARP index tree */
-  snmp_delete_arpidx_tree(arp_table[i].netif, &arp_table[i].ipaddr);
+  mib2_remove_arp_entry(arp_table[i].netif, &arp_table[i].ipaddr);
   /* and empty packet queue */
   if (arp_table[i].q != NULL) {
     /* remove all queued packets */
@@ -477,7 +492,7 @@ update_arp_entry(struct netif *netif, ip_addr_t *ipaddr, struct eth_addr *ethadd
   arp_table[i].netif = netif;
 #endif /* LWIP_SNMP */
   /* insert in SNMP ARP index tree */
-  snmp_insert_arpidx_tree(netif, &arp_table[i].ipaddr);
+  mib2_add_arp_entry(netif, &arp_table[i].ipaddr);
 
   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("update_arp_entry: updating stable entry %"S16_F"\n", (s16_t)i));
   /* update address */
@@ -568,6 +583,43 @@ etharp_remove_static_entry(ip_addr_t *ipaddr)
 }
 #endif /* ETHARP_SUPPORT_STATIC_ENTRIES */
 
+/** Clean up ARP table entries */
+static void
+etharp_free_entry(int i)
+{
+  /* remove from SNMP ARP index tree */
+  mib2_remove_arp_entry(arp_table[i].netif, &arp_table[i].ipaddr);
+  /* and empty packet queue */
+  if (arp_table[i].q != NULL) {
+    /* remove all queued packets */
+    LWIP_DEBUGF(ETHARP_DEBUG, ("etharp_free_entry: freeing entry %"U16_F", packet queue %p.\n", (u16_t)i, (void *)(arp_table[i].q)));
+    free_etharp_q(arp_table[i].q);
+    arp_table[i].q = NULL;
+  }
+  /* recycle entry for re-use */
+  arp_table[i].state = ETHARP_STATE_EMPTY;
+#ifdef LWIP_DEBUG
+  /* for debugging, clean out the complete entry */
+  arp_table[i].ctime = 0;
+  arp_table[i].netif = NULL;
+  ip4_addr_set_zero(&arp_table[i].ipaddr);
+  arp_table[i].ethaddr = ethzero;
+#endif /* LWIP_DEBUG */
+}
+
+void
+etharp_cleanup_netif(struct netif *netif)
+{
+  int i;
+
+  for (i = 0; i < ARP_TABLE_SIZE; ++i) {
+    u8_t state = arp_table[i].state;
+    if ((state != ETHARP_STATE_EMPTY) && (arp_table[i].netif == netif)) {
+      etharp_free_entry(i);
+    }
+  }
+}
+
 /**
  * Finds (stable) ethernet/IP address pair from ARP table
  * using interface and IP address index.
@@ -579,9 +631,9 @@ etharp_remove_static_entry(ip_addr_t *ipaddr)
  * @param ip_ret points to return pointer
  * @return table index if found, -1 otherwise
  */
-s8_t
-etharp_find_addr(struct netif *netif, ip_addr_t *ipaddr,
-         struct eth_addr **eth_ret, ip_addr_t **ip_ret)
+ssize_t
+etharp_find_addr(struct netif *netif, const ip4_addr_t *ipaddr,
+         struct eth_addr **eth_ret, const ip4_addr_t **ip_ret)
 {
   s8_t i;
 
@@ -590,7 +642,7 @@ etharp_find_addr(struct netif *netif, ip_addr_t *ipaddr,
 
   LWIP_UNUSED_ARG(netif);
 
-  i = find_entry(ipaddr, ETHARP_FLAG_FIND_ONLY);
+  i = find_entry((ip_addr_t *)ipaddr, ETHARP_FLAG_FIND_ONLY);
   if((i >= 0) && arp_table[i].state == ETHARP_STATE_STABLE) {
       *eth_ret = &arp_table[i].ethaddr;
       *ip_ret = &arp_table[i].ipaddr;
@@ -834,7 +886,7 @@ etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf *p)
  * or the return type of either etharp_query() or etharp_send_ip().
  */
 err_t
-etharp_output(struct netif *netif, struct pbuf *q, ip_addr_t *ipaddr)
+etharp_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
 {
   struct eth_addr *dest, mcastaddr;
 
@@ -954,7 +1006,7 @@ etharp_output(struct netif *netif, struct pbuf *q, ip_addr_t *ipaddr)
  *
  */
 err_t
-etharp_query(struct netif *netif, ip_addr_t *ipaddr, struct pbuf *q)
+etharp_query(struct netif *netif, const ip4_addr_t *ipaddr, struct pbuf *q)
 {
   struct eth_addr * srcaddr = (struct eth_addr *)netif->hwaddr;
   err_t result = ERR_MEM;
@@ -969,7 +1021,7 @@ etharp_query(struct netif *netif, ip_addr_t *ipaddr, struct pbuf *q)
   }
 
   /* find entry in ARP cache, ask to create entry if queueing packet */
-  i = find_entry(ipaddr, ETHARP_FLAG_TRY_HARD);
+  i = find_entry((ip_addr_t *)ipaddr, ETHARP_FLAG_TRY_HARD);
 
   /* could not find or create entry? */
   if (i < 0) {
@@ -1025,7 +1077,7 @@ etharp_query(struct netif *netif, ip_addr_t *ipaddr, struct pbuf *q)
     p = q;
     while (p) {
       LWIP_ASSERT("no packet queues allowed!", (p->len != p->tot_len) || (p->next == 0));
-      if(p->type != PBUF_ROM) {
+      if(p->type_internal != PBUF_ROM) {
         copy_needed = 1;
         break;
       }
@@ -1195,7 +1247,7 @@ etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr,
  *         any other err_t on failure
  */
 err_t
-etharp_request(struct netif *netif, ip_addr_t *ipaddr)
+etharp_request(struct netif *netif, const ip4_addr_t *ipaddr)
 {
   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_request: sending ARP request.\n"));
   return etharp_raw(netif, (struct eth_addr *)netif->hwaddr, &ethbroadcast,

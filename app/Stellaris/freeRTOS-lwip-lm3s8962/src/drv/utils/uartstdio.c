@@ -891,7 +891,7 @@ UARTgetc(void)
 //*****************************************************************************
 void
 UARTprintf(const char *pcString, ...)
-{
+{		
     unsigned long ulIdx, ulValue, ulPos, ulCount, ulBase, ulNeg;
     char *pcStr, pcBuf[16], cFill;
     va_list vaArgP;

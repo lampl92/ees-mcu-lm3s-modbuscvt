@@ -24,6 +24,7 @@
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/pin_map.h"
+#include "lwip/inet.h"
 #include "modbus.h"
 #include "mb_cvt.h"
 /* ------------------------------------------------------------------------------------------------------
@@ -65,13 +66,16 @@ err_t lwIP_init(void)
 {
 	err_t err = ERR_OK;
 //	struct ip_addr stIpAddr, stNetMsk, stGatWay;
-
+	ip_addr_t ip_address, net_mask, gateway;
+	IP4_ADDR( &ip_address,IPAddress[3],IPAddress[2],IPAddress[1],IPAddress[0]);
+	IP4_ADDR( &net_mask,NetMaskAddr[3],NetMaskAddr[2],NetMaskAddr[1],NetMaskAddr[0]);
+	IP4_ADDR( &gateway,GwWayAddr[3],GwWayAddr[2],GwWayAddr[1],GwWayAddr[0]);
 	/*load local net parameter*/
 //	lwIPLocalMACGet(MACAddress);
 	
 	/*use dhcp mode*/
-	lwIPInit(MACAddress, 0, 0, 0, IPADDR_USE_DHCP);
-
+	lwIPInit(MACAddress, ip_address.addr, net_mask.addr, gateway.addr, IPADDR_USE_STATIC);
+	//lwIPInit(MACAddress, 0, 0, 0, IPADDR_USE_DHCP);
 	g_bNetStatus = NETS_INIT;
 	return err;
 }
@@ -94,26 +98,25 @@ static void TcpClientMainProc(void)
 		do
 		{
 			g_sClientIP.s_addr = lwIPLocalIPAddrGet();
-			UARTprintf(".");
 			vTaskDelay(300);
 		}while(0 == g_sClientIP.s_addr);//获取DHCP分配的IP地址
 		
-		UARTprintf("Get IP completed: \r\n");
+		UARTprintf("DEVICE INFO:\r\n");
 		memset(str, 0, 16);
 		stringtoip(g_sClientIP.s_addr, str);
-		UARTprintf("IP: %s \r\n",str);
+		UARTprintf("IP: %s\r\n",str);
 		
 		g_sClientIP.s_addr = lwIPLocalNetMaskGet();
 		memset(str, 0, 16);
 		stringtoip(g_sClientIP.s_addr, str);
-		UARTprintf("NetMask: %s \r\n",str);
+		UARTprintf("NetMask: %s\r\n",str);
 		
 		g_sClientIP.s_addr = lwIPLocalGWAddrGet();
 		memset(str, 0, 16);
 		stringtoip(g_sClientIP.s_addr, str);
-		UARTprintf("GWAddr: %s \r\n",str);
+		UARTprintf("GWAddr: %s\r\n",str);
 		g_bNetStatus = NETS_LOCIP;
-		UARTprintf("free mem:%d \r\n", xPortGetFreeHeapSize());
+		UARTprintf("Free memory: %d\r\n", xPortGetFreeHeapSize());
 		
 		modbus_init();
 		break;
@@ -183,20 +186,9 @@ void NetServerInit(void)
 
 	lwIP_init();
 	
-//	ping_init();
-	
-	/*创建TCP/IP应用任务
-	OSTaskCreate(TcpClientTask,
-				 (void *)0,
-				 &Task_Eth_Stk[TASK_NET_CLIENT_STACK_SIZE-1],
-				 TASK_NET_CLIENT_PRIORITY);*/
 	
 	xTaskCreate(TcpClientTask, ( signed portCHAR * )"TcpClient", TASK_NET_SERVER_STACK_SIZE, 
 				NULL, TASK_NET_SERVER_PRIORITY, &xHandle);	
-	
-/*	sys_thread_new("TcpClt", TcpClt, NULL, 
-					TASK_NET_SERVER_STACK_SIZE, 
-					TASK_NET_SERVER_PRIORITY);*/
 }
 
 
