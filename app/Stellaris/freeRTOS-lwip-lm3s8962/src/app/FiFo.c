@@ -1,8 +1,8 @@
 
 
 /***************************** Include Files *********************************/
+#include <includes.h>
 #include <FiFo.h>
-#include "modbus.h"
 
 /************************** Constant Definitions *****************************/
 
@@ -28,7 +28,7 @@ void FIFO_Create(SFIFO *pFF) {
 	pFF->u16Size = 0;
 	pFF->u16Head = 0;
 	pFF->u16Tail = 0;
-	pFF->bEnProtect    = FALSE;
+	pFF->bEnProtect    = pdFALSE;
 	pFF->u16ProtectPtr = 0;
 	pFF->u16MaxSize    = SIZE_FIFO_RECV;
 }
@@ -46,7 +46,7 @@ void FIFO_Reset(SFIFO *pFF) {
 	pFF->u16Size 		= 0;
 	pFF->u16Head 		= 0;
 	pFF->u16Tail 		= 0;
-	pFF->bEnProtect     = FALSE;
+	pFF->bEnProtect     = pdFALSE;
 	pFF->u16ProtectPtr  = 0;
 	return;
 }
@@ -66,10 +66,10 @@ uint8_t FIFO_Push(SFIFO *pFF, uint8_t b) {
 		}
 		pFF->u16Size++;
 
-		return TRUE;
+		return pdTRUE;
 	}	
 	else{
-		return FALSE;
+		return pdFALSE;
 	}
 }
 
@@ -93,14 +93,14 @@ uint8_t FIFO_Pop(SFIFO *pFF, uint8_t *b) {
 
 		//UART_EXIT_CRITICAL();
 		
-		return TRUE;
+		return pdTRUE;
 	}		
 
 	*b = 0xFF;
 	
 	//UART_EXIT_CRITICAL();
 	
-	return FALSE;
+	return pdFALSE;
 }
 /** @brief 
  *
@@ -134,7 +134,7 @@ uint16_t FIFO_Recv(SFIFO *pFF, uint8_t *pData, uint16_t len) {
  */
 void FIFO_EnableProtect(SFIFO *pFF) {
 	//UART_ENTER_CRITICAL();
-	pFF->bEnProtect  = TRUE;
+	pFF->bEnProtect  = pdTRUE;
 	pFF->u16ProtectPtr = pFF->u16Head;
 	//UART_EXIT_CRITICAL();
 }
@@ -147,7 +147,7 @@ void FIFO_EnableProtect(SFIFO *pFF) {
  */
 void FIFO_DisableProtect(SFIFO *pFF) {
 	//UART_ENTER_CRITICAL();
-	pFF->bEnProtect  = FALSE;
+	pFF->bEnProtect  = pdFALSE;
 	//UART_EXIT_CRITICAL();
 }
 /** @brief FIFO_RewindHead
@@ -185,12 +185,12 @@ void FIFO_DisableProtect(SFIFO *pFF) {
  */
 uint8_t FIFO_IsEnablePush(SFIFO *pFF) {
 	if(  (pFF->u16Size == pFF->u16MaxSize) ||
-	     (pFF->bEnProtect == TRUE && pFF->u16Size  != 0 && pFF->u16Tail  == pFF->u16ProtectPtr) 
+	     (pFF->bEnProtect == pdTRUE && pFF->u16Size  != 0 && pFF->u16Tail  == pFF->u16ProtectPtr) 
 	  ) {
-		return FALSE;	    	
+		return pdFALSE;	    	
 	}
 	
-	return TRUE;
+	return pdTRUE;
 }
 
 /** @brief 
@@ -210,7 +210,7 @@ uint8_t FIFO_IsEmpty(SFIFO *pFF) {
  *  @note
  */
 uint8_t FIFO_IsFull(SFIFO *pFF) {
-	return (FIFO_IsEnablePush(pFF) ? FALSE : TRUE);
+	return (FIFO_IsEnablePush(pFF) ? pdFALSE : pdTRUE);
 }
 
 /** @brief 
@@ -226,17 +226,17 @@ uint16_t FIFO_GetCount(SFIFO *pFF) {
 uint8_t FIFO_ProbeFirst(SFIFO *pFF, uint8_t *b) {
 	if(pFF->u16Size > 0) {
 		*b = pFF->arrBuff[pFF->u16Head];
-		return TRUE;
+		return pdTRUE;
 	}
-	return FALSE;
+	return pdFALSE;
 }
 
 uint8_t FIFO_ProbeLast(SFIFO *pFF, uint8_t *b) {
 	if(pFF->u16Size > 0) {
 		*b = pFF->arrBuff[pFF->u16Tail];
-		return TRUE;
+		return pdTRUE;
 	}
-	return FALSE;
+	return pdFALSE;
 }
 
 

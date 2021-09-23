@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>rvmdk PART_LM3S8962</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\src\app;..\..\src\bsp;..\..\src\drv;..\..\src\net;..\..\src\os\freeRTOS_7.1.0\include;..\..\src\third_party\lwip-2.1.2\src\include;..\..\src\third_party\lwip-2.1.2\src\include\ipv4;..\..\src\third_party\lwip-2.1.2\ports\stellaris\netif;..\..\src\third_party\lwip-2.1.2\ports\stellaris\include;..\..\src\modbus;..\..\src\lightmodbus</IncludePath>
+              <IncludePath>..\..\src\app;..\..\src\bsp;..\..\src\drv;..\..\src\net;..\..\src\os\freeRTOS_7.1.0\include;..\..\src\third_party\lwip-2.1.2\src\include;..\..\src\third_party\lwip-2.1.2\src\include\ipv4;..\..\src\third_party\lwip-2.1.2\ports\stellaris\netif;..\..\src\third_party\lwip-2.1.2\ports\stellaris\include;..\..\src\lightmodbus</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -404,14 +404,39 @@
               <FilePath>..\..\src\app\Startup.s</FilePath>
             </File>
             <File>
+              <FileName>FiFo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\FiFo.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>userlib</GroupName>
+          <Files>
+            <File>
               <FileName>mb_cvt.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\app\mb_cvt.c</FilePath>
             </File>
             <File>
-              <FileName>FiFo.c</FileName>
+              <FileName>cmd.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\src\app\FiFo.c</FilePath>
+              <FilePath>..\..\src\app\cmd.c</FilePath>
+            </File>
+            <File>
+              <FileName>cmd.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\src\app\cmd.h</FilePath>
+            </File>
+            <File>
+              <FileName>user_epprom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\user_epprom.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_epprom.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\src\app\user_epprom.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -473,6 +498,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\drv\driverlib\uart.c</FilePath>
             </File>
+            <File>
+              <FileName>i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\drv\driverlib\i2c.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -492,6 +522,16 @@
               <FileName>uartstdio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\drv\utils\uartstdio.c</FilePath>
+            </File>
+            <File>
+              <FileName>cmdline.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\drv\utils\cmdline.c</FilePath>
+            </File>
+            <File>
+              <FileName>crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\drv\utils\crc.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -868,5 +908,14 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>freeRTOS-lwip1</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

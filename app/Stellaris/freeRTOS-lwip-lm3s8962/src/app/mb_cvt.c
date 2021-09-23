@@ -376,7 +376,6 @@ static void lwModbusTask(void *pArg)
 	int master_socket;
 	int rc;
 	int rc_len = 0;
-	int enable;
 	int listenfd = 0;
 	int i = 0;
 	uint8_t *tcp_query = NULL;
@@ -413,7 +412,7 @@ static void lwModbusTask(void *pArg)
 		UARTprintf("create socket failed %d\r\n",listenfd);
 		return;
 	}
-//	enable = 1;
+//	int enable = 1;
 //	if (lwip_setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR,
 //                   (char *)&enable, sizeof(enable)) == -1) {
 //			lwip_close(listenfd);
@@ -484,7 +483,7 @@ static void lwModbusTask(void *pArg)
         }
 				else if(rc == 0)
 				{
-					UARTprintf("Free memory:%d \r\n", xPortGetFreeHeapSize()); // detect memleak
+					//UARTprintf("Free memory:%d \r\n", xPortGetFreeHeapSize()); // detect memleak
 				}
 				
 				for (master_socket = 0; master_socket <= fdmax; master_socket++) 

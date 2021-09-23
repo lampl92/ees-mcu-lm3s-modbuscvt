@@ -55,7 +55,7 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/uart.h"
 #include "driverlib/timer.h"
-
+#include "driverlib/i2c.h"
 /*
 *********************************************************************************************************
 *                                              freeRTOS
@@ -94,4 +94,7 @@
 
 #include "bsp.h"
 #include "mb_cvt.h"
+#include "cmd.h"
+#include "utils/cmdline.h"
+#include "user_epprom.h"
 #endif

@@ -40,7 +40,7 @@
 **-------------------------------lwip 2.1.2 LAMPL PORTING----------------------------
 *********************************************************************************************************/
 
-#define LWIP_NO_STDINT_H			1
+#define LWIP_NO_STDINT_H								1
 /*********************************************************************************************************
 **-------------------------------Memory options----------------------------
 *********************************************************************************************************/
@@ -146,25 +146,24 @@
 #define LWIP_DHCP                         0      // default is 0
 //#define DHCP_DOES_ARP_CHECK             1
 //#define DHCP_HOST_NAME                  "fury-dev"
-#define LWIP_AUTOIP 										0
+#define LWIP_AUTOIP 											0
 /*********************************************************************************************************
 **-------------------------------UDP options----------------------------
 *********************************************************************************************************/
-#define LWIP_UDP                    0
-#define UDP_TTL                     255
-#define DEFAULT_UDP_RECVMBOX_SIZE   8
+#define LWIP_UDP                    			0
+#define UDP_TTL                     			255
+#define DEFAULT_UDP_RECVMBOX_SIZE   			8
 /*********************************************************************************************************
 **-------------------------------TCP options----------------------------
 *********************************************************************************************************/
-#define LWIP_TCP                        1
-#define TCP_TTL                         255
-#define TCP_WND                         4096    // default is 2048
-#define TCP_MAXRTX                      12
-#define TCP_SYNMAXRTX                   6
-#define TCP_QUEUE_OOSEQ                 1
-#define TCP_MSS                         1500    // default is 128
-#define TCP_SND_BUF                     (6*TCP_MSS)
-                                                // default is 256
+#define LWIP_TCP                        	1
+#define TCP_TTL                        		255
+#define TCP_WND                         	4096    // default is 2048
+#define TCP_MAXRTX                      	12
+#define TCP_SYNMAXRTX                   	6
+#define TCP_QUEUE_OOSEQ                 	1
+#define TCP_MSS                         	1500    // default is 128
+#define TCP_SND_BUF                     	(6*TCP_MSS) // default is 256
 //#define TCP_SND_QUEUELEN                (4 * TCP_SND_BUF/TCP_MSS)
 //#define TCP_SNDLOWAT                    (TCP_SND_BUF/2)
 //#define LWIP_HAVE_LOOPIF                0
@@ -184,14 +183,14 @@
 /*********************************************************************************************************
 **-------------------------------Sequential layer options----------------------------
 *********************************************************************************************************/
-#define LWIP_NETCONN                   1
+#define LWIP_NETCONN                   		1
 
 
 /*********************************************************************************************************
 **-------------------------------Socket options----------------------------
 *********************************************************************************************************/
-#define LWIP_SOCKET                     1
-#define LWIP_COMPAT_SOCKETS             0
+#define LWIP_SOCKET                     	1
+#define LWIP_COMPAT_SOCKETS             	0
 
 /*********************************************************************************************************
 **-------------------------------Statistics options----------------------------
@@ -229,10 +228,11 @@
 //#define CHECKSUM_CHECK_IP               1
 //#define CHECKSUM_CHECK_UDP              1
 //#define CHECKSUM_CHECK_TCP              1
-
-/* ---------- RAW options ---------- */
-#define DEFAULT_RAW_RECVMBOX_SIZE   8
-#define DEFAULT_ACCEPTMBOX_SIZE     8
+/*********************************************************************************************************
+---------- RAW options ---------- IF MISS THIS, TCP LISTEN FAIL
+*********************************************************************************************************/
+#define DEFAULT_RAW_RECVMBOX_SIZE   			8
+#define DEFAULT_ACCEPTMBOX_SIZE     			8
 /*********************************************************************************************************
 **-------------------------------Debugging options----------------------------
 *********************************************************************************************************/
@@ -250,14 +250,14 @@ extern void UARTprintf(const char *pcString, ...);
 #define LWIP_PLATFORM_DIAG(msg) UARTprintf msg
 #define LWIP_PLATFORM_ASSERT(msg) \
     UARTprintf("ASSERT_FAIL at line %d of %s: %s\n", __LINE__, __FILE__, msg)
-#endif
+
 #define DBG_TYPES_ON                    	LWIP_DBG_ON
 //#define ETHARP_DEBUG                    LWIP_DBG_ON
 //#define NETIF_DEBUG                     LWIP_DBG_ON
 //#define PBUF_DEBUG                      LWIP_DBG_ON
 //#define API_LIB_DEBUG                   LWIP_DBG_ON
 //#define API_MSG_DEBUG                   LWIP_DBG_ON
-#define SOCKETS_DEBUG                  LWIP_DBG_ON
+#define SOCKETS_DEBUG                  		LWIP_DBG_ON
 //#define ICMP_DEBUG                      DBG_OFF
 //#define INET_DEBUG                      DBG_OFF
 //#define IP_DEBUG                        DBG_OFF
@@ -282,6 +282,6 @@ extern void UARTprintf(const char *pcString, ...);
 //#define SLIP_DEBUG                      DBG_OFF
 //#define DHCP_DEBUG                      DBG_OFF
 #define DBG_MIN_LEVEL                   	LWIP_DBG_LEVEL_ALL
-
+#endif
 
 #endif /* __LWIPOPTS_H__ */

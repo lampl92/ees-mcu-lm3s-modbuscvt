@@ -25,8 +25,8 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/pin_map.h"
 #include "lwip/inet.h"
-#include "modbus.h"
 #include "mb_cvt.h"
+#include "user_epprom.h"
 /* ------------------------------------------------------------------------------------------------------
  *											Local Variable
  * ------------------------------------------------------------------------------------------------------
@@ -46,11 +46,9 @@ void stringtoip(unsigned long ipaddr, char *str)
     unsigned char *pucTemp = (unsigned char *)&ipaddr;
 		if(str == NULL)
 			return;
-    //
-    // Convert the IP Address into a string.
-    //
-    usprintf(pucBuf, "%d.%d.%d.%d", pucTemp[0], pucTemp[1], pucTemp[2],
-             pucTemp[3]);
+
+    usprintf(pucBuf, "%d.%d.%d.%d", pucTemp[0], pucTemp[1], pucTemp[2], pucTemp[3]);
+		
 		memcpy(str, pucBuf, 16);
 		return;
 }
@@ -65,14 +63,25 @@ void stringtoip(unsigned long ipaddr, char *str)
 err_t lwIP_init(void)
 {
 	err_t err = ERR_OK;
-//	struct ip_addr stIpAddr, stNetMsk, stGatWay;
+	user_data_t user_data;
 	ip_addr_t ip_address, net_mask, gateway;
-	IP4_ADDR( &ip_address,IPAddress[3],IPAddress[2],IPAddress[1],IPAddress[0]);
-	IP4_ADDR( &net_mask,NetMaskAddr[3],NetMaskAddr[2],NetMaskAddr[1],NetMaskAddr[0]);
-	IP4_ADDR( &gateway,GwWayAddr[3],GwWayAddr[2],GwWayAddr[1],GwWayAddr[0]);
+	
+	get_user_data(&user_data);
+	IP4_ADDR( &ip_address,(unsigned char)(user_data.ipaddr >> 24),
+	(unsigned char)(user_data.ipaddr >> 16),
+	(unsigned char)(user_data.ipaddr >> 8),
+	(unsigned char)(user_data.ipaddr));
+	IP4_ADDR( &net_mask,(unsigned char)(user_data.netmask >> 24),
+	(unsigned char)(user_data.netmask >> 16),
+	(unsigned char)(user_data.netmask >> 8),
+	(unsigned char)(user_data.netmask));
+	IP4_ADDR( &gateway,(unsigned char)(user_data.gateway >> 24),
+	(unsigned char)(user_data.gateway >> 16),
+	(unsigned char)(user_data.gateway >> 8),
+	(unsigned char)(user_data.gateway));
 	/*load local net parameter*/
 //	lwIPLocalMACGet(MACAddress);
-	
+
 	/*use dhcp mode*/
 	lwIPInit(MACAddress, ip_address.addr, net_mask.addr, gateway.addr, IPADDR_USE_STATIC);
 	//lwIPInit(MACAddress, 0, 0, 0, IPADDR_USE_DHCP);
@@ -154,8 +163,8 @@ static void TcpClientTask(void *pArg)
 {
 	for(;;)
 	{
-        TcpClientMainProc();
-		vTaskDelay(2);
+		TcpClientMainProc();
+		vTaskDelay(10);
 	}
 }
 

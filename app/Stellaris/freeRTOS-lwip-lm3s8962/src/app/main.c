@@ -84,6 +84,8 @@ static void prvStartTask(void *pvParameters)
 	
 	NetServerInit();
 	
+	cmd_init();
+	
 	for (;;)
 	{
 		vTaskSuspend( NULL );			
@@ -109,8 +111,8 @@ void vApplicationStackOverflowHook( xTaskHandle *pxTask, signed portCHAR *pcTask
 	( void ) pcTaskName;
 
     
-    UARTprintf("Stack Overflow : ");
-    UARTprintf((const char*)pcTaskName);
+	UARTprintf("Stack Overflow : ");
+	UARTprintf((const char*)pcTaskName);
     
 	for( ;; );
 }
