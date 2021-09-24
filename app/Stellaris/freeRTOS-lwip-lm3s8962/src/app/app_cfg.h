@@ -17,4 +17,5 @@
 #define malloc pvPortMalloc
 #define free vPortFree
 
+#define WATCHDOG_INTERVAL								10
 #endif

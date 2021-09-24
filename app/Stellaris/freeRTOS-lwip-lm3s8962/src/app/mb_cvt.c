@@ -32,9 +32,14 @@ const uint16_t UT_REGISTERS_ADDRESS_BYTE_SLEEP_5_MS = 0x173;
 
 #define MODBUS_RTU_CRC_LENGHT 2
 
+#define TCP_CLIENT_SOCKET_TIMEOUT              (5000)
+
 #define MAX_RESPONSE MODBUS_RTU_MAX_ADU_LENGTH
 
-#define CVT_DEBUG
+#define MAX_CLIENT_SOCKET						4
+
+#define WATCHDOG_FEED_TIMEOUT				5000 // milisecond
+//#define CVT_DEBUG
 
 static void lwModbusTask(void *pArg);
 
@@ -372,12 +377,15 @@ static void lwModbusTask(void *pArg)
 	struct sockaddr_in servaddr;
 	fd_set refset;
   fd_set rdset;
+	fd_set fderror;
 	int fdmax;
 	int master_socket;
 	int rc;
 	int rc_len = 0;
 	int listenfd = 0;
 	int i = 0;
+	int client_sockets[MAX_CLIENT_SOCKET];
+	int enable = 0;
 	uint8_t *tcp_query = NULL;
 	uint8_t *rtu_buffer = NULL;
 	LWIP_UNUSED_ARG(pArg);
@@ -385,7 +393,7 @@ static void lwModbusTask(void *pArg)
 	ModbusErrorInfo err;
 	ModbusSlave slave;
 	ModbusMaster master;
-	
+	uint32_t feeddog_timeout = 0;
 	tcp_query = pvPortMalloc(MODBUS_TCP_MAX_ADU_LENGTH);
 	if(tcp_query == NULL)
 	{
@@ -412,13 +420,15 @@ static void lwModbusTask(void *pArg)
 		UARTprintf("create socket failed %d\r\n",listenfd);
 		return;
 	}
-//	int enable = 1;
-//	if (lwip_setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR,
-//                   (char *)&enable, sizeof(enable)) == -1) {
-//			lwip_close(listenfd);
-//			UARTprintf("set sock opt failed\r\n");
-//			return;
-//	}									
+
+	enable = 1;
+	if (lwip_setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR,
+                   (char *)&enable, sizeof(enable)) == -1) {
+			lwip_close(listenfd);
+			UARTprintf("set sock opt failed\r\n");
+			return;
+	}	
+	
 	rc = lwip_bind(listenfd, (struct sockaddr *)&servaddr, sizeof(struct sockaddr));
 	if( rc < 0)
 	{
@@ -427,7 +437,7 @@ static void lwModbusTask(void *pArg)
 		return;
 	}
 
-	if(lwip_listen(listenfd, 1) < 0)
+	if(lwip_listen(listenfd, MAX_CLIENT_SOCKET) < 0)
 	{
 		UARTprintf("listenfd failed \r\n");
 		lwip_close(listenfd);
@@ -462,6 +472,11 @@ static void lwModbusTask(void *pArg)
 		goto exit;
 	}
 	UARTprintf("Accepting connections...\r\n");
+	
+	for(i = 0; i < MAX_CLIENT_SOCKET; i ++)
+	{
+		client_sockets[i] = 0;
+	}
 	/* Clear the reference set of socket */
 	FD_ZERO(&refset);
 	/* Add the server socket */
@@ -472,18 +487,39 @@ static void lwModbusTask(void *pArg)
 	{			
 				FD_ZERO(&rdset);
 				rdset = refset;
+				FD_ZERO(&fderror);
+				FD_SET(fdmax, &fderror);
 				tv.tv_sec = 5;
 				tv.tv_usec = 0;
-				rc = lwip_select(fdmax+1, &rdset, NULL, NULL, &tv);
+				if((xTaskGetTickCount() - feeddog_timeout) > WATCHDOG_FEED_TIMEOUT)
+				{
+					WatchdogReloadSet(WATCHDOG0_BASE, WatchdogReloadGet(WATCHDOG0_BASE));
+					feeddog_timeout = xTaskGetTickCount();					
+				}
+				rc = lwip_select(fdmax+1, &rdset, NULL, &fderror, &tv);
 				
         if (rc < 0)
 				{
-          UARTprintf("Server select() failure.\r\n");
+          UARTprintf("Server select() failure \r\n");
 					continue;
         }
 				else if(rc == 0)
 				{
-					//UARTprintf("Free memory:%d \r\n", xPortGetFreeHeapSize()); // detect memleak
+					UARTprintf("%u Free memory:%d \r\n", xTaskGetTickCount(), xPortGetFreeHeapSize()); // detect memleak
+					if(fdmax >0)
+					{
+						for(i = 0; i < MAX_CLIENT_SOCKET; i++)
+						{							
+							if(client_sockets[i])
+							{
+								UARTprintf("Close socket #%d = %d \r\n",i, client_sockets[i]);
+								lwip_close(client_sockets[i]);
+								FD_CLR(client_sockets[i], &refset);
+								client_sockets[i] = 0;
+							}
+						}
+						fdmax = 0;
+					}
 				}
 				
 				for (master_socket = 0; master_socket <= fdmax; master_socket++) 
@@ -492,31 +528,42 @@ static void lwModbusTask(void *pArg)
 						{
                 continue;
             }
-						
 						if (master_socket == listenfd) 
 						{
                 /* A client is asking a new connection */
                 socklen_t addrlen;
                 struct sockaddr_in clientaddr;
                 int newfd;
-								/* Handle new connections */
-                addrlen = sizeof(clientaddr);
-                memset(&clientaddr, 0, sizeof(clientaddr));
-                UARTprintf("modbus wating for new connection...\r\n");
-                newfd = lwip_accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
-                if (newfd == -1) {
-                    UARTprintf("Server accept() error");
-                } else {
-                    FD_SET(newfd, &refset);
 
-                    if (newfd > fdmax) {
-                        /* Keep track of the maximum */
-                        fdmax = newfd;
-                    }
-                    UARTprintf("New connection from %s:%d on socket %d\n",
-                           inet_ntoa(clientaddr.sin_addr), clientaddr.sin_port, newfd);
-                }
-						} else
+								/* Handle new connections */
+								addrlen = sizeof(clientaddr);
+								memset(&clientaddr, 0, sizeof(clientaddr));
+								UARTprintf("modbus wating for new connection...\r\n");
+								newfd = lwip_accept(listenfd, (struct sockaddr *)&clientaddr, &addrlen);
+								if (newfd == -1) 
+								{
+										UARTprintf("Server accept error\r\n");
+								} 
+								else 
+								{																			
+										FD_SET(newfd, &refset);
+										if (newfd > fdmax) {
+												/* Keep track of the maximum */
+												fdmax = newfd;
+										}
+										for(i = 0; i < MAX_CLIENT_SOCKET; i++)
+										{
+											if(client_sockets[i] == 0)
+											{
+												client_sockets[i] = newfd;
+												break;
+											}
+										}	
+										UARTprintf("Save connection from %s:%d on socket %d at #%d\n",										
+													 inet_ntoa(clientaddr.sin_addr), clientaddr.sin_port, newfd, i);																
+								}
+						} 
+						else
 						{
 								memset(tcp_query, 0, MODBUS_TCP_MAX_ADU_LENGTH);
 								rc = lwip_recv(master_socket, tcp_query, MODBUS_TCP_MAX_ADU_LENGTH, 0);
@@ -583,11 +630,19 @@ static void lwModbusTask(void *pArg)
 										}
 								}
 										
-								}else
-								{
-										UARTprintf("Connection closed on socket %d\n", master_socket);
+								}
+								else
+								{										
 										lwip_close(master_socket);
-
+										for( i = 0; i < MAX_CLIENT_SOCKET; i++)
+										{
+											if(client_sockets[i] == master_socket)
+											{
+												client_sockets[i] = 0;
+												break;
+											}
+										}
+										UARTprintf("Connection closed on socket %d at #%d\n", master_socket, i);
                     /* Remove from reference set */
                     FD_CLR(master_socket, &refset);
 

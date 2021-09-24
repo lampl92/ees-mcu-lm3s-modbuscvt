@@ -1,12 +1,13 @@
 #ifndef _USER_EPPROM_H_
 #define _USER_EPPROM_H_
 
-typedef struct
+typedef struct __attribute__((__packed__))
 {
 	unsigned long ipaddr;
 	unsigned long gateway;
 	unsigned long netmask;
 	unsigned short lifetime;
+	unsigned char mac[6];
 	unsigned short crc;
 }user_data_t;
 

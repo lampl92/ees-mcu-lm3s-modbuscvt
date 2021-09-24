@@ -503,6 +503,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\drv\driverlib\i2c.c</FilePath>
             </File>
+            <File>
+              <FileName>watchdog.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\drv\driverlib\watchdog.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

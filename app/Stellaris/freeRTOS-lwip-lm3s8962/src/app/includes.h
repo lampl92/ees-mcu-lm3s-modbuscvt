@@ -56,6 +56,7 @@
 #include "driverlib/uart.h"
 #include "driverlib/timer.h"
 #include "driverlib/i2c.h"
+#include "driverlib/watchdog.h"
 /*
 *********************************************************************************************************
 *                                              freeRTOS

@@ -151,6 +151,12 @@ int get_user_data(user_data_t * user_data)
 		inet_aton("192.168.1.1", &user_data->gateway);
 		inet_aton("255.255.255.0", &user_data->netmask);
 		user_data->lifetime = 0;
+		user_data->mac[0] = 0x00;
+		user_data->mac[1] = 0x14;
+		user_data->mac[2] = 0x97;
+		user_data->mac[3] = 0x0f;
+		user_data->mac[4] = 0x1d;
+		user_data->mac[5] = 0xe3;
 		set_user_data(user_data);
 	}
 	return 0;

@@ -64,5 +64,11 @@ void BSP_Init(void)
 		UARTprintf("BSP initialise\n");
 		
 		user_epprom_init();
+		
+		// init watchdog
+		SysCtlPeripheralEnable(SYSCTL_PERIPH_WDOG0);
+		WatchdogReloadSet(WATCHDOG0_BASE, SysCtlClockGet() * WATCHDOG_INTERVAL);
+    WatchdogResetEnable(WATCHDOG0_BASE);
+		WatchdogEnable(WATCHDOG0_BASE);
 }
 

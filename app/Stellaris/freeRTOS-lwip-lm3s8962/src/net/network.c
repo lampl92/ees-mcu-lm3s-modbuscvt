@@ -83,7 +83,7 @@ err_t lwIP_init(void)
 //	lwIPLocalMACGet(MACAddress);
 
 	/*use dhcp mode*/
-	lwIPInit(MACAddress, ip_address.addr, net_mask.addr, gateway.addr, IPADDR_USE_STATIC);
+	lwIPInit((const unsigned char *)user_data.mac, ip_address.addr, net_mask.addr, gateway.addr, IPADDR_USE_STATIC);
 	//lwIPInit(MACAddress, 0, 0, 0, IPADDR_USE_DHCP);
 	g_bNetStatus = NETS_INIT;
 	return err;

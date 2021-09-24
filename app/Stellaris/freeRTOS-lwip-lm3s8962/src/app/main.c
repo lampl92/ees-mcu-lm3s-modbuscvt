@@ -55,7 +55,13 @@ static void prvStartTask(void *pvParameters);
 int main(void)
 {
 	BSP_Init();
-	
+
+	if(SysCtlResetCauseGet() & SYSCTL_CAUSE_WDOG)
+	{
+        SysCtlResetCauseClear(SYSCTL_CAUSE_WDOG);
+        UARTprintf("\r\n\r\n########################## WDT RESET #########################\r\n\r\n");
+    }
+    
 	xTaskCreate( prvStartTask, ( signed char * ) "prvStartTask",
 				configMINIMAL_STACK_SIZE, NULL, TASK_START_TASK_PRIORITY, NULL );
 
@@ -81,7 +87,7 @@ int main(void)
 static void prvStartTask(void *pvParameters)
 {
 	(void) pvParameters;
-	
+
 	NetServerInit();
 	
 	cmd_init();
