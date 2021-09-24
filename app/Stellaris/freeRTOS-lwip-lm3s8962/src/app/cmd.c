@@ -31,6 +31,7 @@ int ProcessHelp(int argc, char *argv[]);
 int network_config(int argc, char *argv[]);
 int system_reboot(int argc, char *argv[]);
 int do_setmac(int argc, char *argv[]);
+int do_memfree(int argc, char *argv[]);
 //
 // The table of commands supported by this application.
 //
@@ -40,8 +41,13 @@ tCmdLineEntry g_sCmdTable[] =
 	{ "reboot", system_reboot, "system rboot" },
 	{ "help", ProcessHelp, "Application help." },
 	{ "setmac", do_setmac, "Set mac address." },
+	{ "free", do_memfree, "Get memory free" },
 	{NULL, NULL, NULL}
 };
+int do_memfree(int argc, char *argv[])
+{
+	UARTprintf("[%d]Free memory: %d \r\n", xTaskGetTickCount(), xPortGetFreeHeapSize());
+}
 int isValidMacAddress(const char* mac) {
     int i = 0;
     int s = 0;
