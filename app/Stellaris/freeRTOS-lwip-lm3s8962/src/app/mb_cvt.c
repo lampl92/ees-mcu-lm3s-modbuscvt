@@ -394,6 +394,7 @@ static void lwModbusTask(void *pArg)
 	ModbusSlave slave;
 	ModbusMaster master;
 	uint32_t feeddog_timeout = 0;
+	uint32_t listen_count = 0;
 	tcp_query = pvPortMalloc(MODBUS_TCP_MAX_ADU_LENGTH);
 	if(tcp_query == NULL)
 	{
@@ -492,9 +493,10 @@ static void lwModbusTask(void *pArg)
 				tv.tv_sec = 5;
 				tv.tv_usec = 0;
 				if((xTaskGetTickCount() - feeddog_timeout) > WATCHDOG_FEED_TIMEOUT)
-				{
+				{				
 					WatchdogReloadSet(WATCHDOG0_BASE, WatchdogReloadGet(WATCHDOG0_BASE));
 					feeddog_timeout = xTaskGetTickCount();					
+					//UARTprintf("reload watchog at %d \r\n",feeddog_timeout);
 				}
 				rc = lwip_select(fdmax+1, &rdset, NULL, &fderror, &tv);
 				
@@ -520,6 +522,16 @@ static void lwModbusTask(void *pArg)
 						}
 						fdmax = 0;
 					}
+					if( ++listen_count >= 2)
+					{
+						UARTprintf("listen timeout, reset \r\n");
+						vTaskDelay(500);
+						do_reboot();
+					}
+				}
+				else
+				{
+					listen_count = 0;
 				}
 				
 				for (master_socket = 0; master_socket <= fdmax; master_socket++) 

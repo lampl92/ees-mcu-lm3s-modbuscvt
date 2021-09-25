@@ -521,9 +521,9 @@ UARTDisable(unsigned long ulBase)
     //
     // Wait for end of TX.
     //
-    while(HWREG(ulBase + UART_O_FR) & UART_FR_BUSY)
-    {
-    }
+//    while(HWREG(ulBase + UART_O_FR) & UART_FR_BUSY)
+//    {
+//    }
 
     //
     // Disable the FIFO.

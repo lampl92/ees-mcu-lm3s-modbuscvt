@@ -113,6 +113,12 @@ int ProcessHelp(int argc, char *argv[])
 }
 int system_reboot(int argc, char *argv[])
 {
+	do_reboot();
+	return 0;
+}
+
+void do_reboot(void)
+{
 	IntMasterDisable();
 
 	HWREG(SYSCTL_RCC) = ((HWREG(SYSCTL_RCC) & ~(SYSCTL_RCC_USESYSDIV)) |
@@ -152,9 +158,8 @@ int system_reboot(int argc, char *argv[])
 	HWREG(SYSCTL_MISC) = 0xffffffff;
 
 	SysCtlReset();
-	return 0;
+	return;
 }
-
 int network_config(int argc, char *argv[])
 {
 	user_data_t user_data;
