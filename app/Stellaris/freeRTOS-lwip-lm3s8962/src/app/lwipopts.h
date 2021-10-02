@@ -35,12 +35,14 @@
 #define LWIP_IGMP                   0
 #define LWIP_ICMP                   1
 #define LWIP_SNMP                   1
-
+#define INCLUDE_HTTPD_SSI
+#define INCLUDE_HTTPD_CGI
+#define DYNAMIC_HTTP_HEADERS
 /*********************************************************************************************************
 **-------------------------------lwip 2.1.2 LAMPL PORTING----------------------------
 *********************************************************************************************************/
 
-#define LWIP_NO_STDINT_H								1
+//#define LWIP_NO_STDINT_H								1
 /*********************************************************************************************************
 **-------------------------------Memory options----------------------------
 *********************************************************************************************************/
@@ -252,12 +254,13 @@ extern void UARTprintf(const char *pcString, ...);
     UARTprintf("ASSERT_FAIL at line %d of %s: %s\n", __LINE__, __FILE__, msg)
 
 #define DBG_TYPES_ON                    	LWIP_DBG_ON
+#define HTTPD_DEBUG												LWIP_DBG_ON
 //#define ETHARP_DEBUG                    LWIP_DBG_ON
 //#define NETIF_DEBUG                     LWIP_DBG_ON
 //#define PBUF_DEBUG                      LWIP_DBG_ON
 //#define API_LIB_DEBUG                   LWIP_DBG_ON
 //#define API_MSG_DEBUG                   LWIP_DBG_ON
-#define SOCKETS_DEBUG                  		LWIP_DBG_ON
+//#define SOCKETS_DEBUG                  		LWIP_DBG_ON
 //#define ICMP_DEBUG                      DBG_OFF
 //#define INET_DEBUG                      DBG_OFF
 //#define IP_DEBUG                        DBG_OFF

@@ -3,6 +3,10 @@
 
 typedef struct __attribute__((__packed__))
 {
+	unsigned long baudrate;
+	unsigned long databits;
+	unsigned long parity;
+	unsigned long stopbits;
 	unsigned long ipaddr;
 	unsigned long gateway;
 	unsigned long netmask;

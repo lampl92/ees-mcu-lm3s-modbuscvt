@@ -3,6 +3,39 @@
 #include "lwip/inet.h"
 static SFIFO rxFIFO;
 
+int validate_number(char *str) {
+   while (*str) {
+      if(!isdigit(*str)){ //if the character is not a number, return false
+         return 0;
+      }
+      str++; //point to next character
+   }
+   return 1;
+}
+int validate_ip(char *ip) { //check whether the IP is valid or not
+   int i, num, dots = 0;
+   char *ptr;
+   if (ip == NULL)
+      return 0;
+      ptr = strtok(ip, "."); //cut the string using dor delimiter
+      if (ptr == NULL)
+         return 0;
+   while (ptr) {
+      if (!validate_number(ptr)) //check whether the sub string is holding only number or not
+         return 0;
+         num = atoi(ptr); //convert substring to number
+         if (num >= 0 && num <= 255) {
+            ptr = strtok(NULL, "."); //cut the next part of the string
+            if (ptr != NULL)
+               dots++; //increase the dot count
+         } else
+            return 0;
+    }
+    if (dots != 3) //if the number of dots are not 3, return false
+       return 0;
+      return 1;
+}
+
 void UART0IntHandler(void)
 {
     unsigned long ulStatus;
@@ -47,31 +80,35 @@ tCmdLineEntry g_sCmdTable[] =
 int do_memfree(int argc, char *argv[])
 {
 	UARTprintf("[%d]Free memory: %d \r\n", xTaskGetTickCount(), xPortGetFreeHeapSize());
+	return 0;
 }
+
 int isValidMacAddress(const char* mac) {
     int i = 0;
     int s = 0;
 
-    while (*mac) {
-       if (isxdigit(*mac)) {
-          i++;
-       }
-       else if (*mac == ':' || *mac == '-') {
+	while (*mac) 
+	{
+	 if (isxdigit(*mac)) 
+	 {
+			i++;
+	 }
+	 else if (*mac == ':' || *mac == '-') 
+	 {
+		if (i == 0 || i / 2 - 1 != s)
+			break;
+		++s;
+	 }
+	 else 
+	 {
+		 s = -1;
+	 }
 
-          if (i == 0 || i / 2 - 1 != s)
-            break;
 
-          ++s;
-       }
-       else {
-           s = -1;
-       }
+	 ++mac;
+	}
 
-
-       ++mac;
-    }
-
-    return (i == 12 && (s == 5 || s == 0));
+	return (i == 12 && (s == 5 || s == 0));
 }
 int do_setmac(int argc, char *argv[])
 {
@@ -179,17 +216,17 @@ int network_config(int argc, char *argv[])
 		UARTprintf("Lifetime: %d \r\n",user_data.lifetime);
 	}else if(argc == 4)
 	{
-		if(inet_aton(argv[1], &user_data.ipaddr) == 0)
+		if((inet_aton(argv[1], &user_data.ipaddr) == 0) || validate_ip(argv[1]) == 0)
 		{
 			UARTprintf("IP convert failed \r\n");
 			return -1;
 		}
-		if(inet_aton(argv[2], &user_data.gateway) == 0)
+		if((inet_aton(argv[2], &user_data.gateway) == 0) || validate_ip(argv[2]) == 0)
 		{
 			UARTprintf("Gateway convert failed \r\n");
 			return -1;
 		}
-		if(inet_aton(argv[3], &user_data.netmask) == 0)
+		if((inet_aton(argv[3], &user_data.netmask) == 0)|| validate_ip(argv[3]) == 0)
 		{
 			UARTprintf("Netmask convert failed \r\n");
 			return -1;
@@ -198,7 +235,13 @@ int network_config(int argc, char *argv[])
 			UARTprintf("Success configuration netconfig\r\n");
 		else
 			UARTprintf("Failed Configuration netconfig\r\n");
-	} 
+	}else if(argc == 2)
+	{
+		if(!strcmp("default", argv[1]))
+		{
+			set_default_config();
+		}
+	}
 	else 
 	{
 		UARTprintf("usesage: ifconfig [IPaddress] [Gateway] [Netmask] \r\n");

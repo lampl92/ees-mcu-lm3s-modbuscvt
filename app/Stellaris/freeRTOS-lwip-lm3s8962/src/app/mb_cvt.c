@@ -132,6 +132,57 @@ void UARTIntHandler(void)
 
 static void rtu_init(void)
 {
+	user_data_t userdata;
+  get_user_data(&userdata);
+	UARTprintf("[===RTU INIT====] \r\nBAURATE: %d\r\n", userdata.baudrate);
+	switch(userdata.databits)
+	{
+		case UART_CONFIG_WLEN_5:
+			UARTprintf("DATABITS: 5\r\n");
+			break;
+		case UART_CONFIG_WLEN_6:
+			UARTprintf("DATABITS: 6\r\n");
+			break;
+		case UART_CONFIG_WLEN_7:
+			UARTprintf("DATABITS: 7\r\n");
+			break;
+		case UART_CONFIG_WLEN_8:
+			UARTprintf("DATABITS: 8\r\n");
+			break;
+		default:
+			UARTprintf("DATABITS: unknow\r\n");
+			break;
+	}
+	
+	switch(userdata.parity)
+	{
+		case UART_CONFIG_PAR_NONE:
+			UARTprintf("PARITY: NONE\r\n");
+			break;
+		case UART_CONFIG_PAR_ODD:
+			UARTprintf("PARITY: ODD\r\n");
+			break;
+		case UART_CONFIG_PAR_EVEN:
+			UARTprintf("PARITY: EVEN\r\n");
+			break;
+		default:
+			UARTprintf("PARITY: UNKNOW\r\n");
+			break;
+	}
+	
+	switch(userdata.stopbits)
+	{
+		case UART_CONFIG_STOP_ONE:
+			UARTprintf("STOPBITS: 1\r\n");
+			break;
+		case UART_CONFIG_STOP_TWO:
+			UARTprintf("STOPBITS: 2\r\n");
+			break;
+		default:
+			UARTprintf("STOPBITS: UNKNOW\r\n");
+			break;
+	}
+	UARTprintf("[===============]\r\n");
 	FIFO_Create(&rxFifo);
 	//
 	// Enable the peripherals used by this example.
@@ -142,9 +193,9 @@ static void rtu_init(void)
 	//
 	// Configure the UART for 115,200, 8-N-1 operation.
 	//
-	UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 115200,
-											(UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
-											 UART_CONFIG_PAR_NONE));
+	UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), userdata.baudrate,
+											(userdata.databits | userdata.stopbits |
+											 userdata.parity));
 	//
 	// Set GPIO A0 and A1 as UART.
 	//
@@ -386,6 +437,7 @@ static void lwModbusTask(void *pArg)
 	int i = 0;
 	int client_sockets[MAX_CLIENT_SOCKET];
 	int enable = 0;
+  tBoolean enableWatchdog = pdFALSE;
 	uint8_t *tcp_query = NULL;
 	uint8_t *rtu_buffer = NULL;
 	LWIP_UNUSED_ARG(pArg);
@@ -522,7 +574,7 @@ static void lwModbusTask(void *pArg)
 						}
 						fdmax = 0;
 					}
-					if( ++listen_count >= 2)
+					if( ++listen_count >= 2 && enableWatchdog == pdTRUE)
 					{
 						UARTprintf("listen timeout, reset \r\n");
 						vTaskDelay(500);
@@ -571,6 +623,8 @@ static void lwModbusTask(void *pArg)
 												break;
 											}
 										}	
+										if(enableWatchdog == pdFALSE)
+											enableWatchdog = pdTRUE;
 										UARTprintf("Save connection from %s:%d on socket %d at #%d\n",										
 													 inet_ntoa(clientaddr.sin_addr), clientaddr.sin_port, newfd, i);																
 								}
@@ -625,7 +679,8 @@ static void lwModbusTask(void *pArg)
 											{
 												tcp_query[i + MODBUS_TCP_HEADER_LENGHT] = rtu_buffer[i];
 											}  									
-										}else
+										}
+										else
 										{
 											UARTprintf("RTU timeout\r\n");
 											continue;
@@ -636,12 +691,8 @@ static void lwModbusTask(void *pArg)
 										if (rc < 0)
 										{
 											UARTprintf("send failed %d\r\n",rc);
-										}else
-										{
-											//UARTprintf("send done %d\r\n",rc);
 										}
-								}
-										
+									}						
 								}
 								else
 								{										

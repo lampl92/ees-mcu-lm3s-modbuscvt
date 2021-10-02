@@ -98,4 +98,7 @@
 #include "cmd.h"
 #include "utils/cmdline.h"
 #include "user_epprom.h"
+#include "webserver.h"
+#include "cgifuncs.h"
+#include "httpd.h"
 #endif

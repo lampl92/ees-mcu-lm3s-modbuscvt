@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>rvmdk PART_LM3S8962</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\src\app;..\..\src\bsp;..\..\src\drv;..\..\src\net;..\..\src\os\freeRTOS_7.1.0\include;..\..\src\third_party\lwip-2.1.2\src\include;..\..\src\third_party\lwip-2.1.2\src\include\ipv4;..\..\src\third_party\lwip-2.1.2\ports\stellaris\netif;..\..\src\third_party\lwip-2.1.2\ports\stellaris\include;..\..\src\lightmodbus</IncludePath>
+              <IncludePath>..\..\src\app;..\..\src\bsp;..\..\src\drv;..\..\src\net;..\..\src\os\freeRTOS_7.1.0\include;..\..\src\third_party\lwip-2.1.2\src\include;..\..\src\third_party\lwip-2.1.2\src\include\ipv4;..\..\src\third_party\lwip-2.1.2\ports\stellaris\netif;..\..\src\third_party\lwip-2.1.2\ports\stellaris\include;..\..\src\lightmodbus;..\..\src\httpserver_raw</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -408,6 +408,21 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\app\FiFo.c</FilePath>
             </File>
+            <File>
+              <FileName>cgifuncs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\cgifuncs.c</FilePath>
+            </File>
+            <File>
+              <FileName>httpd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\httpserver_raw\httpd.c</FilePath>
+            </File>
+            <File>
+              <FileName>lmi_fs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\lmi_fs.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -437,6 +452,16 @@
               <FileName>user_epprom.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\src\app\user_epprom.h</FilePath>
+            </File>
+            <File>
+              <FileName>webserver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\app\webserver.c</FilePath>
+            </File>
+            <File>
+              <FileName>webserver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\src\app\webserver.h</FilePath>
             </File>
           </Files>
         </Group>

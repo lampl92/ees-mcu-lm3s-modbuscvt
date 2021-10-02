@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>
+    MODBUS CONVERTER
+  </title>
+</head>
+
+<body>
+  <form method="get" action="/leds.cgi">
+    <table align="center" border="0" cellpadding="1" cellspacing="1" width="50%">
+      <tbody>
+        <th align="center" colspan="2"><h1>RTU CONFIGURATION</h1></th>
+        <tr>
+          <td align="left"><label for="Baudrate">Baud rate:</label></td>
+          <td align="right"><select name="Baudrate" id="Baudrate">
+              <!--#baudtxt-->
+            </select></td>
+        </tr>
+        <tr>
+          <td align="left"><label for="Databits">Data bits:</label></td>
+          <td align="right"><select name="Databits" id="Databits">
+              <!--#dbit-->
+            </select></td>
+        </tr>
+        <tr>
+          <td align="left"><label for="Parity">Parity:</label></td>
+          <td align="right"><select name="Parity" id="Parity">
+              <!--#parity-->
+            </select></td>
+        </tr>
+        <tr>
+          <td align="left"><label for="Stopbits">Stop bits:</label></td>
+          <td align="right"><select name="Stopbits" id="Stopbits">
+              <!--#sbits-->
+            </select></td>
+        </tr>
+        <th align="center" colspan="2"><h1>TCP CONFIGURATION</h1></th>
+        <tr>
+          <td align="left"><label for="ipaddressname">IP address:</label></td>
+          <!--#ipaddr-->
+        </tr>
+        <tr>
+          <td align="left"><label for="gatewayname">Gateway:</label></td>
+          <!--#gtway-->
+        </tr>
+        <tr class="separator">
+          <td align="left"><label for="netmaskname">Net Mask:</label></td>
+          <!--#nmask-->
+        </tr>
+        <tr><th align="center" colspan="2"><input value="SAVE & REBOOT" type="submit"></th></tr>
+      </tbody>
+    </table>
+  </form>
+</body>
+
+</html>

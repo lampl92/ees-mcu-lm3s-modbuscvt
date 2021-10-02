@@ -118,6 +118,7 @@
 #if !LWIP_NO_STDINT_H
 #include <stdint.h>
 /* stdint.h is C99 which should also provide support for 64-bit integers */
+#if 0
 #if !defined(LWIP_HAVE_INT64) && defined(UINT64_MAX)
 #define LWIP_HAVE_INT64 1
 #endif
@@ -133,7 +134,7 @@ typedef int64_t   s64_t;
 #endif
 typedef uintptr_t mem_ptr_t;
 #endif
-
+#endif
 /** Define this to 1 in arch/cc.h of your port if your compiler does not provide
  * the inttypes.h header. You need to define the format strings listed in
  * lwip/arch.h yourself in this case (X8_F, U16_F...).

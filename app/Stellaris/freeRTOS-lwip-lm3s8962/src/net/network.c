@@ -27,6 +27,7 @@
 #include "lwip/inet.h"
 #include "mb_cvt.h"
 #include "user_epprom.h"
+#include "webserver.h"
 /* ------------------------------------------------------------------------------------------------------
  *											Local Variable
  * ------------------------------------------------------------------------------------------------------
@@ -128,6 +129,7 @@ static void TcpClientMainProc(void)
 		UARTprintf("Free memory: %d\r\n", xPortGetFreeHeapSize());
 		
 		modbus_init();
+		webserver_init();
 		break;
 
 	case NETS_LOCIP:

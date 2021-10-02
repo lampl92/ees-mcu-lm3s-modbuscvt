@@ -151,6 +151,10 @@ int get_user_data(user_data_t * user_data)
 		inet_aton("192.168.1.1", &user_data->gateway);
 		inet_aton("255.255.255.0", &user_data->netmask);
 		user_data->lifetime = 0;
+		user_data->baudrate = 115200;
+		user_data->databits = UART_CONFIG_WLEN_8;
+		user_data->parity = UART_CONFIG_PAR_NONE;
+		user_data->stopbits = UART_CONFIG_STOP_ONE;
 		user_data->mac[0] = 0x00;
 		user_data->mac[1] = 0x14;
 		user_data->mac[2] = 0x97;
@@ -162,6 +166,27 @@ int get_user_data(user_data_t * user_data)
 	return 0;
 }
  
+void set_default_config(void)
+{
+	user_data_t user_data;
+	memset(&user_data,0xff, sizeof(user_data_t));
+	UARTprintf("restore default config user data \r\n");
+	inet_aton("192.168.1.10", &user_data.ipaddr);
+	inet_aton("192.168.1.1", &user_data.gateway);
+	inet_aton("255.255.255.0", &user_data.netmask);
+	user_data.lifetime = 0;
+	user_data.baudrate = 115200;
+	user_data.databits = UART_CONFIG_WLEN_8;
+	user_data.parity = UART_CONFIG_PAR_NONE;
+	user_data.stopbits = UART_CONFIG_STOP_ONE;
+	user_data.mac[0] = 0x00;
+	user_data.mac[1] = 0x14;
+	user_data.mac[2] = 0x97;
+	user_data.mac[3] = 0x0f;
+	user_data.mac[4] = 0x1d;
+	user_data.mac[5] = 0xe3;
+	set_user_data(&user_data);
+}
 int set_user_data(user_data_t * user_data)
 {
 	if (user_data == NULL)
