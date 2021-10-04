@@ -32,14 +32,14 @@
  *											Local Variable
  * ------------------------------------------------------------------------------------------------------
  */
-//OS_STK  Task_Eth_Stk[TASK_NET_CLIENT_STACK_SIZE];
-
+#define COUNTER_LIFE_TIME_MIN		60 * 12
 unsigned char MACAddress[] = My_Mac_ID;
 unsigned char IPAddress[] = MY_IP_ID;
 unsigned char NetMaskAddr[] = IP_MARK_ID;
 unsigned char GwWayAddr[] = MY_GATEWAY_ID;
 
 unsigned char g_bNetStatus;
+uint32_t	timer_count = 0;
 
 void stringtoip(unsigned long ipaddr, char *str)
 {
@@ -102,6 +102,7 @@ static void TcpClientMainProc(void)
 {
 	struct in_addr  g_sClientIP;
 	char str[16];
+	user_data_t userdata;
 	switch(g_bNetStatus)
 	{
 	case NETS_INIT:
@@ -109,7 +110,7 @@ static void TcpClientMainProc(void)
 		{
 			g_sClientIP.s_addr = lwIPLocalIPAddrGet();
 			vTaskDelay(300);
-		}while(0 == g_sClientIP.s_addr);//获取DHCP分配的IP地址
+		}while(0 == g_sClientIP.s_addr);
 		
 		UARTprintf("DEVICE INFO:\r\n");
 		memset(str, 0, 16);
@@ -133,7 +134,17 @@ static void TcpClientMainProc(void)
 		break;
 
 	case NETS_LOCIP:
-//		TcpGetLocalIp();
+		vTaskDelay(5000);
+		if (timer_count++ > COUNTER_LIFE_TIME_MIN)
+		{
+			timer_count = 0;
+			get_user_data(&userdata);
+			if(userdata.lifetime == 0xFFFFFFFF)
+				userdata.lifetime = 0;
+			userdata.lifetime++;
+			set_user_data(&userdata);
+			UARTprintf("lifetime : %u\r\n", userdata.lifetime);
+		}
 		break;
 
 	case NETS_SRVIP:

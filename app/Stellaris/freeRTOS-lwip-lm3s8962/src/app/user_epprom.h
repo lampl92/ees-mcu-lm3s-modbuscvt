@@ -10,7 +10,7 @@ typedef struct __attribute__((__packed__))
 	unsigned long ipaddr;
 	unsigned long gateway;
 	unsigned long netmask;
-	unsigned short lifetime;
+	unsigned long lifetime;
 	unsigned char mac[6];
 	unsigned short crc;
 }user_data_t;

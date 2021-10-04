@@ -142,7 +142,7 @@ int get_user_data(user_data_t * user_data)
 		return -1;
 	
 	Eeprom_Ext_Read(USER_DATA_OFFSET, (uint8_t *)user_data, sizeof(user_data_t));
-	
+	UARTprintf("crc %x %x \r\n", user_data->crc, Crc16(0, (const unsigned char *)user_data, sizeof(user_data_t) - 2));
 	if(user_data->crc != Crc16(0, (const unsigned char *)user_data, sizeof(user_data_t) - 2))
 	{
 		memset(user_data,0xff, sizeof(user_data_t));
@@ -151,7 +151,7 @@ int get_user_data(user_data_t * user_data)
 		inet_aton("192.168.1.1", &user_data->gateway);
 		inet_aton("255.255.255.0", &user_data->netmask);
 		user_data->lifetime = 0;
-		user_data->baudrate = 115200;
+		user_data->baudrate = 9600;
 		user_data->databits = UART_CONFIG_WLEN_8;
 		user_data->parity = UART_CONFIG_PAR_NONE;
 		user_data->stopbits = UART_CONFIG_STOP_ONE;
