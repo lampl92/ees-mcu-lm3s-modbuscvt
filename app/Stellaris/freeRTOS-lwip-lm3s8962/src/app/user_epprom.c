@@ -142,7 +142,7 @@ int get_user_data(user_data_t * user_data)
 		return -1;
 	
 	Eeprom_Ext_Read(USER_DATA_OFFSET, (uint8_t *)user_data, sizeof(user_data_t));
-	UARTprintf("crc %x %x \r\n", user_data->crc, Crc16(0, (const unsigned char *)user_data, sizeof(user_data_t) - 2));
+	//UARTprintf("crc %x %x \r\n", user_data->crc, Crc16(0, (const unsigned char *)user_data, sizeof(user_data_t) - 2));
 	if(user_data->crc != Crc16(0, (const unsigned char *)user_data, sizeof(user_data_t) - 2))
 	{
 		memset(user_data,0xff, sizeof(user_data_t));

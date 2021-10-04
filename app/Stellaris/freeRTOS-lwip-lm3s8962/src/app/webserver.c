@@ -156,7 +156,7 @@ exit:
 
 static int SSIHandler(int iIndex, char *pcInsert, int iInsertLen)
 {
-		user_data_t userdata;
+		user_data_t userdata;	
     get_user_data(&userdata);
 		switch(iIndex)
 		{
