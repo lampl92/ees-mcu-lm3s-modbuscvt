@@ -22,7 +22,7 @@ enum{
 #define TASK_NET_SERVER_STACK_SIZE			512
 #define TASK_LWIP_TCPIP_STACKSIZE				1024
 #define TASK_LWIP_MODBUS_STACKSIZE			2048
-#define TASK_USER_CMD_STACKSIZE					512
+#define TASK_USER_CMD_STACKSIZE					128
 #define TASK_REBOOT_STACKSIZE						128
 #define malloc pvPortMalloc
 #define free vPortFree

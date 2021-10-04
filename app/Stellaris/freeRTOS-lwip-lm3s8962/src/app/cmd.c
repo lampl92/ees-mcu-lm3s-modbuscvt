@@ -65,18 +65,32 @@ int network_config(int argc, char *argv[]);
 int system_reboot(int argc, char *argv[]);
 int do_setmac(int argc, char *argv[]);
 int do_memfree(int argc, char *argv[]);
+int do_rtuconfig(int argc, char *argv[]);
 //
 // The table of commands supported by this application.
 //
 tCmdLineEntry g_sCmdTable[] =
 {
 	{ "ifconfig", network_config, "network_config" },
-	{ "reboot", system_reboot, "system rboot" },
-	{ "help", ProcessHelp, "Application help." },
 	{ "setmac", do_setmac, "Set mac address." },
+	{ "rtuconfig", do_rtuconfig, "rtu config" },
+	{ "reboot", system_reboot, "system rboot" },
 	{ "free", do_memfree, "Get memory free" },
+	{ "?", ProcessHelp, "Application help." },
 	{NULL, NULL, NULL}
 };
+int ProcessHelp(int argc, char *argv[])
+{
+	UARTprintf("\r\nHelp cmd:\r\n");
+	UARTprintf("ifconfig - config network ip\r\n");
+	UARTprintf("setmac - set mac address\r\n");
+	UARTprintf("rtuconfig - config rtu\r\n");
+	UARTprintf("reboot - system reboot\r\n");
+	UARTprintf("free - show free memory\r\n");	
+	//user_epprom_test();
+	return 0;
+}
+
 int do_memfree(int argc, char *argv[])
 {
 	UARTprintf("[%d]Free memory: %d \r\n", xTaskGetTickCount(), xPortGetFreeHeapSize());
@@ -139,20 +153,13 @@ int do_setmac(int argc, char *argv[])
 	}
 	return 0;
 }
-//
-// Code for the "help" command.
-//
-int ProcessHelp(int argc, char *argv[])
-{
-	UARTprintf("\r\nHelp cmd\r\n");
-	user_epprom_test();
-	return 0;
-}
+
 int system_reboot(int argc, char *argv[])
 {
 	do_reboot();
 	return 0;
 }
+
 
 void do_reboot(void)
 {
@@ -212,9 +219,9 @@ int network_config(int argc, char *argv[])
 			user_data.mac[3],
 			user_data.mac[4],
 			user_data.mac[5]);
-
 		UARTprintf("Lifetime: %d \r\n",user_data.lifetime);
-	}else if(argc == 4)
+	}
+	else if(argc == 4)
 	{
 		if((inet_aton(argv[1], &user_data.ipaddr) == 0) || validate_ip(argv[1]) == 0)
 		{
@@ -235,7 +242,8 @@ int network_config(int argc, char *argv[])
 			UARTprintf("Success configuration netconfig\r\n");
 		else
 			UARTprintf("Failed Configuration netconfig\r\n");
-	}else if(argc == 2)
+	}
+	else if(argc == 2)
 	{
 		if(!strcmp("default", argv[1]))
 		{
@@ -250,6 +258,111 @@ int network_config(int argc, char *argv[])
 	return 0;
 }
 
+int do_rtuconfig(int argc, char *argv[])
+{
+	user_data_t user_data;
+	get_user_data(&user_data);
+
+	if(argc ==1)
+	{
+		UARTprintf("UART config: %d %d %s %d \r\n", user_data.baudrate, 
+		user_data.databits == UART_CONFIG_WLEN_5 ? 5: user_data.databits == UART_CONFIG_WLEN_6 ? 6 : user_data.databits == UART_CONFIG_WLEN_7 ? 7 : user_data.databits == UART_CONFIG_WLEN_8? 8 : 0,
+		user_data.parity == UART_CONFIG_PAR_NONE ? "N" : user_data.parity == UART_CONFIG_PAR_ODD ? "O": UART_CONFIG_PAR_EVEN ? "E": "unknown",
+		user_data.stopbits == UART_CONFIG_STOP_ONE ? 1 : user_data.stopbits == UART_CONFIG_STOP_TWO ? 2 : 0);
+	}
+	else if( argc == 5)
+	{
+		if (strcmp(argv[1], "115200") == 0) 
+		{
+			user_data.baudrate = 115200;
+		}
+		else if (strcmp(argv[1], "38400") == 0) 
+		{
+			user_data.baudrate = 38400;
+		}
+		else if (strcmp(argv[1], "19200") == 0) 
+		{
+			user_data.baudrate = 19200;
+		}
+		else if (strcmp(argv[1], "9600") == 0) 
+		{
+			user_data.baudrate = 9600;
+		}
+		else
+		{
+			goto usage;
+		}
+		
+		if (strcmp(argv[2], "5") == 0) 
+		{
+			user_data.databits = UART_CONFIG_WLEN_5;
+		}
+		else if (strcmp(argv[2], "6") == 0) 
+		{
+			user_data.databits = UART_CONFIG_WLEN_6;
+		}
+		else if (strcmp(argv[2], "7") == 0) 
+		{
+			user_data.databits = UART_CONFIG_WLEN_7;
+		}
+		else if (strcmp(argv[2], "8") == 0) 
+		{
+			user_data.databits = UART_CONFIG_WLEN_8;
+		}
+		else
+		{
+			goto usage;
+		}
+		
+		if (strcmp(argv[3], "N") == 0 || strcmp(argv[3], "n") == 0) 
+		{
+			user_data.parity = UART_CONFIG_PAR_NONE;
+		}
+		else if (strcmp(argv[3], "O") == 0 || strcmp(argv[3], "o") == 0 ) 
+		{
+			user_data.parity = UART_CONFIG_PAR_ODD;
+		}
+		else if (strcmp(argv[3], "E") == 0 || strcmp(argv[3], "e") == 0) 
+		{
+			user_data.parity = UART_CONFIG_PAR_EVEN;
+		}
+		else
+		{
+			goto usage;
+		}
+		
+		if (strcmp(argv[4], "1") == 0) 
+		{
+			user_data.stopbits = UART_CONFIG_STOP_ONE;
+		}
+		else if (strcmp(argv[4], "2") == 0) 
+		{
+			user_data.stopbits = UART_CONFIG_STOP_TWO;
+		}
+		else
+		{
+			goto usage;
+		}
+		
+		if(set_user_data(&user_data) == 0)
+			UARTprintf("Success configuration netconfig\r\n");
+		else
+			UARTprintf("Failed Configuration netconfig\r\n");
+	}
+	else
+	{
+		goto usage;
+	}
+	return 0;
+	
+usage:
+	UARTprintf("rtuconfig [baudrate] [bitlen] [parity] [stopbit]\r\n");
+	UARTprintf("- Baurate: 115200, 38400, 19200, 9600 \r\n");
+	UARTprintf("- Bitlen:  5, 6, 7, 8 \r\n");
+	UARTprintf("- Sarity:  [N]one, [O]dd, [E]ven \r\n");
+	UARTprintf("- Stopbit: 1, 2\r\n");	
+	return -1;
+}
 static void cmd_task(void *pArgs)
 {
 	char rxbuf[INPUT_BUFER_SIZE];

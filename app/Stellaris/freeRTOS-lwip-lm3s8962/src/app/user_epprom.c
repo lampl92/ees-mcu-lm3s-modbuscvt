@@ -175,7 +175,7 @@ void set_default_config(void)
 	inet_aton("192.168.1.1", &user_data.gateway);
 	inet_aton("255.255.255.0", &user_data.netmask);
 	user_data.lifetime = 0;
-	user_data.baudrate = 115200;
+	user_data.baudrate = 9600;
 	user_data.databits = UART_CONFIG_WLEN_8;
 	user_data.parity = UART_CONFIG_PAR_NONE;
 	user_data.stopbits = UART_CONFIG_STOP_ONE;

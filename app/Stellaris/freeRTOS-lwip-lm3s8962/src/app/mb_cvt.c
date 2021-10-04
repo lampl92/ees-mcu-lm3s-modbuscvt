@@ -22,6 +22,8 @@ const uint16_t UT_REGISTERS_ADDRESS_INVALID_TID_OR_SLAVE = 0x171;
 
 const uint16_t UT_REGISTERS_ADDRESS_BYTE_SLEEP_5_MS = 0x173;
 
+//#define CVT_DEBUG
+
 #define MODBUS_TCP_MAX_ADU_LENGTH  260
 
 #define MODBUS_RTU_MAX_ADU_LENGTH  256
@@ -39,7 +41,9 @@ const uint16_t UT_REGISTERS_ADDRESS_BYTE_SLEEP_5_MS = 0x173;
 #define MAX_CLIENT_SOCKET						4
 
 #define WATCHDOG_FEED_TIMEOUT				5000 // milisecond
-//#define CVT_DEBUG
+
+#define RTU_MAX_TIMEOUT							50
+
 
 static void lwModbusTask(void *pArg);
 
@@ -447,6 +451,7 @@ static void lwModbusTask(void *pArg)
 	ModbusMaster master;
 	uint32_t feeddog_timeout = 0;
 	uint32_t listen_count = 0;
+	int rtu_timeout_count = 0;
 	tcp_query = pvPortMalloc(MODBUS_TCP_MAX_ADU_LENGTH);
 	if(tcp_query == NULL)
 	{
@@ -675,6 +680,7 @@ static void lwModbusTask(void *pArg)
 										//if (err.error != MODBUS_ERROR_LENGTH && err.error != MODBUS_ERROR_CRC)
 										if(rc_len > 0)
 										{						
+											rtu_timeout_count = 0; // reset rtu timeout
 											for(i = 0;i <  rc_len - MODBUS_RTU_CRC_LENGHT ; i++) 
 											{
 												tcp_query[i + MODBUS_TCP_HEADER_LENGHT] = rtu_buffer[i];
@@ -682,7 +688,13 @@ static void lwModbusTask(void *pArg)
 										}
 										else
 										{
-											UARTprintf("RTU timeout\r\n");
+											if(rtu_timeout_count++ > RTU_MAX_TIMEOUT)
+											{
+												UARTprintf("RTU reach max timeout, reboot\r\n");
+												vTaskDelay(500);
+												do_reboot();
+											}
+											UARTprintf("RTU timeout %d\r\n", rtu_timeout_count);
 											continue;
 										}					
 										

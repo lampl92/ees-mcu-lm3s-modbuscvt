@@ -52,12 +52,13 @@ static char *LedCGIhandler(int iIndex, int iNumParams, char *pcParam[], char *pc
 		{
 			case 115200:
 			case 38400:
+			case 19200: 
 			case 9600:
 				userdata.baudrate = baudrate;
 			break;
 			
 			default:
-				userdata.baudrate = 115200;
+				userdata.baudrate = 9600;
 			break;
 		}
 		
@@ -111,7 +112,7 @@ static char *LedCGIhandler(int iIndex, int iNumParams, char *pcParam[], char *pc
 				userdata.stopbits = UART_CONFIG_STOP_ONE;
 				break;
 		}
-		UARTprintf("UART config %d %d %d %d\r\n",baudrate, databits,parity,stopbits);
+		UARTprintf("UART config %d %d %d %d\r\n",baudrate, databits, parity, stopbits);
 	 
 		lvalue = FindCGIParameter("ipaddress", pcParam, iNumParams);
 		UARTprintf("ipaddr: %s\r\n", pcValue[lvalue]);
@@ -162,7 +163,8 @@ static int SSIHandler(int iIndex, char *pcInsert, int iInsertLen)
 			case SSI_INDEX_BAURATE:
 				usnprintf(pcInsert, iInsertLen, BAUDRATE_STRING, userdata.baudrate == 115200 ? "selected":"",
 																												userdata.baudrate == 38400 ? "selected":"",
-																											 userdata.baudrate == 9600 ? "selected":"");
+																												userdata.baudrate == 19200 ? "selected":"",
+																											  userdata.baudrate == 9600 ? "selected":"");
 				break;
 			
 			case SSI_INDEX_DBIT:
