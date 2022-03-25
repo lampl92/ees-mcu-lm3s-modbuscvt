@@ -1,6 +1,6 @@
 
 /*
- * Auto generated Run-Time-Environment Configuration File
+ * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
  * Project: 'freeRTOS-lwip1.4-lm3s' 
@@ -16,9 +16,7 @@
  */
 #define CMSIS_device_header "lm3s8938.h"
 
-/* Keil.ARM Compiler::Compiler:I/O:STDERR:ITM:1.2.0 */
 #define RTE_Compiler_IO_STDERR          /* Compiler I/O: STDERR */
           #define RTE_Compiler_IO_STDERR_ITM      /* Compiler I/O: STDERR ITM */
-
 
 #endif /* RTE_COMPONENTS_H */

@@ -57,7 +57,7 @@ void UART0IntHandler(void)
         //
         // Read the next character from the UART and write it back to the UART.
         //
-			FIFO_Push(&rxFIFO, UARTCharGetNonBlocking(CMD_UART_PORT));
+		FIFO_Push(&rxFIFO, UARTCharGetNonBlocking(CMD_UART_PORT));
     }
 }
 int ProcessHelp(int argc, char *argv[]);
@@ -359,7 +359,7 @@ usage:
 	UARTprintf("rtuconfig [baudrate] [bitlen] [parity] [stopbit]\r\n");
 	UARTprintf("- Baurate: 115200, 38400, 19200, 9600 \r\n");
 	UARTprintf("- Bitlen:  5, 6, 7, 8 \r\n");
-	UARTprintf("- Sarity:  [N]one, [O]dd, [E]ven \r\n");
+	UARTprintf("- Parity:  [N]one, [O]dd, [E]ven \r\n");
 	UARTprintf("- Stopbit: 1, 2\r\n");	
 	return -1;
 }

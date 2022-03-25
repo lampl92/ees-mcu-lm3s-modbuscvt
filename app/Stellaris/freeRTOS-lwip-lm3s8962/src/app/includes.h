@@ -97,6 +97,7 @@
 #include "mb_cvt.h"
 #include "cmd.h"
 #include "utils/cmdline.h"
+#include "utils/flash_pb.h"
 #include "user_epprom.h"
 #include "webserver.h"
 #include "cgifuncs.h"

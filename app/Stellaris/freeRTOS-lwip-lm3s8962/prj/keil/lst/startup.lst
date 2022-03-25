@@ -578,18 +578,19 @@ ARM Macro Assembler    Page 9
                        ***********************
   354 00000000                 END
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
-ork --depend=.\obj\startup.d -o.\obj\startup.o -I.\RTE\_freeRTOS-lwip1.4 -IC:\U
-sers\lam\AppData\Local\Arm\Packs\ARM\CMSIS\5.8.0\CMSIS\Core\Include -IC:\Users\
-lam\AppData\Local\Arm\Packs\Keil\LM3S_DFP\1.1.0\Device\Include --predefine="__M
-ICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 536" --predefine="_RTE_ SET
-A 1" --predefine="LM3S8938 SETA 1" --predefine="_RTE_ SETA 1" --list=.\lst\star
+ork --depend=.\obj\startup.d -o.\obj\startup.o -ID:\workspace\22.modbus_tcp_con
+vert\1.SW\etz-main\app\Stellaris\freeRTOS-lwip-lm3s8962\prj\keil\RTE\_freeRTOS-
+lwip1.4 -IC:\Users\Admin\AppData\Local\Arm\Packs\ARM\CMSIS\5.8.0\CMSIS\Core\Inc
+lude -IC:\Users\Admin\AppData\Local\Arm\Packs\Keil\LM3S_DFP\1.1.0\Device\Includ
+e --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 522" --pr
 
 
 
 ARM Macro Assembler    Page 10 
 
 
-tup.lst ..\..\src\app\Startup.s
+edefine="_RTE_ SETA 1" --predefine="LM3S8938 SETA 1" --list=.\lst\startup.lst .
+.\..\src\app\Startup.s
 
 
 

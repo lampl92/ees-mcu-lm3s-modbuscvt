@@ -564,7 +564,7 @@ static void lwModbusTask(void *pArg)
         }
 				else if(rc == 0)
 				{
-					UARTprintf("%u Free memory:%d \r\n", xTaskGetTickCount(), xPortGetFreeHeapSize()); // detect memleak
+					//UARTprintf("%u Free memory:%d \r\n", xTaskGetTickCount(), xPortGetFreeHeapSize()); // detect memleak
 					if(fdmax >0)
 					{
 						for(i = 0; i < MAX_CLIENT_SOCKET; i++)
