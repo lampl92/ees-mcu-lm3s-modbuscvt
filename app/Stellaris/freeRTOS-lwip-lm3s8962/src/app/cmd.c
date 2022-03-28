@@ -13,7 +13,7 @@ int validate_number(char *str) {
    return 1;
 }
 int validate_ip(char *ip) { //check whether the IP is valid or not
-   int i, num, dots = 0;
+   int num, dots = 0;
    char *ptr;
    if (ip == NULL)
       return 0;
@@ -127,9 +127,16 @@ int isValidMacAddress(const char* mac) {
 int do_setmac(int argc, char *argv[])
 {
 	user_data_t user_data;
+  get_user_data(&user_data);
+	
 	if(argc != 2)
 	{
-		UARTprintf("usage: setmac [macaddress] \r\n");
+		UARTprintf("{\"Mac\":\"%02x:%02x:%02x:%02x:%02x:%02x\"}",user_data.mac[0],
+							user_data.mac[1],
+							user_data.mac[2],
+							user_data.mac[3],
+							user_data.mac[4],
+							user_data.mac[5]);
 		return -1;
 	} 
 	else
@@ -139,7 +146,6 @@ int do_setmac(int argc, char *argv[])
 			UARTprintf("MAC address is not valid \r\n");	
 			return -1;
 		}
-		get_user_data(&user_data);
 		sscanf(argv[1], "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &user_data.mac[0], 
 			&user_data.mac[1], 
 			&user_data.mac[2], 
@@ -147,9 +153,9 @@ int do_setmac(int argc, char *argv[])
 			&user_data.mac[4], 
 			&user_data.mac[5]);
 		if(set_user_data(&user_data) == 0)
-			UARTprintf("Success configuration MAC address\r\n");
+			UARTprintf("Success");
 		else
-			UARTprintf("Failed Configuration MAC address\r\n");
+			UARTprintf("Failed");
 	}
 	return 0;
 }
@@ -207,41 +213,35 @@ void do_reboot(void)
 int network_config(int argc, char *argv[])
 {
 	user_data_t user_data;
+	get_user_data(&user_data);
+	
 	if(argc == 1) 
 	{
-		get_user_data(&user_data);
-		UARTprintf("IPddr: %s \r\n",inet_ntoa(user_data.ipaddr));
-		UARTprintf("Gateway: %s \r\n",inet_ntoa(user_data.gateway));
-		UARTprintf("Netmask: %s \r\n",inet_ntoa(user_data.netmask));
-		UARTprintf("Mac address: %02x:%02x:%02x:%02x:%02x:%02x \r\n",user_data.mac[0],
-			user_data.mac[1],
-			user_data.mac[2],
-			user_data.mac[3],
-			user_data.mac[4],
-			user_data.mac[5]);
-		UARTprintf("Lifetime: %d \r\n",user_data.lifetime);
+		UARTprintf("{\"Ipaddr\":\"%s\",",inet_ntoa(user_data.ipaddr));
+		UARTprintf("\"Gw\":\"%s\",",inet_ntoa(user_data.gateway));
+		UARTprintf("\"Netmask\":\"%s\"}",inet_ntoa(user_data.netmask));
 	}
 	else if(argc == 4)
 	{
 		if((inet_aton(argv[1], &user_data.ipaddr) == 0) || validate_ip(argv[1]) == 0)
 		{
-			UARTprintf("IP convert failed \r\n");
+			UARTprintf("Failed");
 			return -1;
 		}
 		if((inet_aton(argv[2], &user_data.gateway) == 0) || validate_ip(argv[2]) == 0)
 		{
-			UARTprintf("Gateway convert failed \r\n");
+			UARTprintf("Failed");
 			return -1;
 		}
 		if((inet_aton(argv[3], &user_data.netmask) == 0)|| validate_ip(argv[3]) == 0)
 		{
-			UARTprintf("Netmask convert failed \r\n");
+			UARTprintf("Failed");
 			return -1;
 		}
 		if(set_user_data(&user_data) == 0)
-			UARTprintf("Success configuration netconfig\r\n");
+			UARTprintf("Success");
 		else
-			UARTprintf("Failed Configuration netconfig\r\n");
+			UARTprintf("Failed");
 	}
 	else if(argc == 2)
 	{
@@ -263,14 +263,21 @@ int do_rtuconfig(int argc, char *argv[])
 	user_data_t user_data;
 	get_user_data(&user_data);
 
-	if(argc ==1)
+	if(argc == 1)
 	{
-		UARTprintf("UART config: %d %d %s %d \r\n", user_data.baudrate, 
-		user_data.databits == UART_CONFIG_WLEN_5 ? 5: user_data.databits == UART_CONFIG_WLEN_6 ? 6 : user_data.databits == UART_CONFIG_WLEN_7 ? 7 : user_data.databits == UART_CONFIG_WLEN_8? 8 : 0,
-		user_data.parity == UART_CONFIG_PAR_NONE ? "N" : user_data.parity == UART_CONFIG_PAR_ODD ? "O": UART_CONFIG_PAR_EVEN ? "E": "unknown",
-		user_data.stopbits == UART_CONFIG_STOP_ONE ? 1 : user_data.stopbits == UART_CONFIG_STOP_TWO ? 2 : 0);
+		UARTprintf("{\"Baud\":%d,", user_data.baudrate);
+		
+		UARTprintf("\"Databits\":%d,",
+			user_data.databits == UART_CONFIG_WLEN_5 ? 5: user_data.databits == UART_CONFIG_WLEN_6 ? 6 : user_data.databits == UART_CONFIG_WLEN_7 ? 7 : user_data.databits == UART_CONFIG_WLEN_8? 8 : 0);
+		
+		UARTprintf("\"Parity\":\"%s\",", 
+			UART_CONFIG_PAR_NONE ? "N" : user_data.parity == UART_CONFIG_PAR_ODD ? "O": UART_CONFIG_PAR_EVEN ? "E": "unknown");			
+		
+		UARTprintf("\"Stopbits\":%d,", user_data.stopbits == UART_CONFIG_STOP_ONE ? 1 : user_data.stopbits == UART_CONFIG_STOP_TWO ? 2 : 0);
+		
+		UARTprintf("\"Port\":%d}", user_data.port);		
 	}
-	else if( argc == 5)
+	else if( argc == 6)
 	{
 		if (strcmp(argv[1], "115200") == 0) 
 		{
@@ -344,10 +351,12 @@ int do_rtuconfig(int argc, char *argv[])
 			goto usage;
 		}
 		
+		user_data.port = atoi(argv[5]);
+		
 		if(set_user_data(&user_data) == 0)
-			UARTprintf("Success configuration netconfig\r\n");
+			UARTprintf("Success");
 		else
-			UARTprintf("Failed Configuration netconfig\r\n");
+			UARTprintf("Failed");
 	}
 	else
 	{
@@ -356,11 +365,12 @@ int do_rtuconfig(int argc, char *argv[])
 	return 0;
 	
 usage:
-	UARTprintf("rtuconfig [baudrate] [bitlen] [parity] [stopbit]\r\n");
+	UARTprintf("rtuconfig [baudrate] [bitlen] [parity] [stopbit] [port]\r\n");
 	UARTprintf("- Baurate: 115200, 38400, 19200, 9600 \r\n");
 	UARTprintf("- Bitlen:  5, 6, 7, 8 \r\n");
 	UARTprintf("- Parity:  [N]one, [O]dd, [E]ven \r\n");
 	UARTprintf("- Stopbit: 1, 2\r\n");	
+	UARTprintf("- Port: tcp port 1 - 65535\r\n");
 	return -1;
 }
 static void cmd_task(void *pArgs)
@@ -376,14 +386,14 @@ static void cmd_task(void *pArgs)
 			FIFO_Recv(&rxFIFO, &Char, 1);			
 			if (rxIndex < INPUT_BUFER_SIZE)
 			{
-				if(Char  == '\n' || Char  == '\r')
+				if(Char  == '\r')
 				{
 proc:
 					if(rxIndex > 0)
 						rxbuf[rxIndex] = '\0';
-					UARTprintf("\r\n");
+					//UARTprintf("\r\n");
 					CmdLineProcess(rxbuf);
-					UARTprintf("\r\n>");
+					//UARTprintf("\r\n>");
 					rxIndex = 0;
 				}
 				else if (Char == 0x08)
@@ -399,7 +409,7 @@ proc:
 				else
 				{
 					rxbuf[rxIndex++] = Char;
-					UARTCharPut(CMD_UART_PORT, Char);
+					//UARTCharPut(CMD_UART_PORT, Char);
 				}
 			}
 			else

@@ -138,55 +138,55 @@ static void rtu_init(void)
 {
 	user_data_t userdata;
   get_user_data(&userdata);
-	UARTprintf("[===RTU INIT====] \r\nBAURATE: %d\r\n", userdata.baudrate);
+	//UARTprintf("[===RTU INIT====] \r\nBAURATE: %d\r\n", userdata.baudrate);
 	switch(userdata.databits)
 	{
 		case UART_CONFIG_WLEN_5:
-			UARTprintf("DATABITS: 5\r\n");
+			//UARTprintf("DATABITS: 5\r\n");
 			break;
 		case UART_CONFIG_WLEN_6:
-			UARTprintf("DATABITS: 6\r\n");
+			//UARTprintf("DATABITS: 6\r\n");
 			break;
 		case UART_CONFIG_WLEN_7:
-			UARTprintf("DATABITS: 7\r\n");
+			//UARTprintf("DATABITS: 7\r\n");
 			break;
 		case UART_CONFIG_WLEN_8:
-			UARTprintf("DATABITS: 8\r\n");
+			//UARTprintf("DATABITS: 8\r\n");
 			break;
 		default:
-			UARTprintf("DATABITS: unknow\r\n");
+			//UARTprintf("DATABITS: unknow\r\n");
 			break;
 	}
 	
 	switch(userdata.parity)
 	{
 		case UART_CONFIG_PAR_NONE:
-			UARTprintf("PARITY: NONE\r\n");
+			//UARTprintf("PARITY: NONE\r\n");
 			break;
 		case UART_CONFIG_PAR_ODD:
-			UARTprintf("PARITY: ODD\r\n");
+			//UARTprintf("PARITY: ODD\r\n");
 			break;
 		case UART_CONFIG_PAR_EVEN:
-			UARTprintf("PARITY: EVEN\r\n");
+			//UARTprintf("PARITY: EVEN\r\n");
 			break;
 		default:
-			UARTprintf("PARITY: UNKNOW\r\n");
+			//UARTprintf("PARITY: UNKNOW\r\n");
 			break;
 	}
 	
 	switch(userdata.stopbits)
 	{
 		case UART_CONFIG_STOP_ONE:
-			UARTprintf("STOPBITS: 1\r\n");
+			//UARTprintf("STOPBITS: 1\r\n");
 			break;
 		case UART_CONFIG_STOP_TWO:
-			UARTprintf("STOPBITS: 2\r\n");
+			//UARTprintf("STOPBITS: 2\r\n");
 			break;
 		default:
-			UARTprintf("STOPBITS: UNKNOW\r\n");
+			//UARTprintf("STOPBITS: UNKNOW\r\n");
 			break;
 	}
-	UARTprintf("[===============]\r\n");
+	//UARTprintf("[===============]\r\n");
 	FIFO_Create(&rxFifo);
 	//
 	// Enable the peripherals used by this example.
@@ -243,6 +243,9 @@ int rtu_recv(uint8_t *rsp, int rsp_length,uint16_t timeout)
 void rtu_send(const uint8_t *req, int req_length)
 {
 	int len = req_length;
+	/*
+	*TODO: add RTU send togge
+	*/
 	while(len--)
 	{
 			//
@@ -311,8 +314,8 @@ void printErrorInfo(ModbusErrorInfo err)
 
 void printResponse(const ModbusSlave *slave)
 {
-	for (int i = 0; i < modbusSlaveGetResponseLength(slave); i++)
-		UARTprintf("0x%02x ", modbusSlaveGetResponse(slave)[i]);
+	//for (int i = 0; i < modbusSlaveGetResponseLength(slave); i++)
+		//UARTprintf("0x%02x ", modbusSlaveGetResponse(slave)[i]);
 }
 
 static uint16_t crc16(uint8_t *buffer, uint16_t buffer_length)
@@ -508,13 +511,13 @@ static void lwModbusTask(void *pArg)
 		myAllocator,
 		modbusSlaveDefaultFunctions,
 		modbusSlaveDefaultFunctionCount);
-	UARTprintf("Slave init: "); printErrorInfo(err); 
+	//UARTprintf("Slave init: "); printErrorInfo(err); 
 	if (!modbusIsOk(err))
 	{
 		goto exit;
 	}
 	
-	UARTprintf("RTU port init\r\n");
+	//UARTprintf("RTU port init\r\n");
 	rtu_init();
 	rtu_flush();
 		err = modbusMasterInit(
@@ -524,12 +527,12 @@ static void lwModbusTask(void *pArg)
 		myAllocator,
 		modbusMasterDefaultFunctions,
 		modbusMasterDefaultFunctionCount);
-	UARTprintf("Master init: "); printErrorInfo(err);
+	//UARTprintf("Master init: "); printErrorInfo(err);
 	if (!modbusIsOk(err))
 	{
 		goto exit;
 	}
-	UARTprintf("Accepting connections...\r\n");
+	UARTprintf("Converter running");
 	
 	for(i = 0; i < MAX_CLIENT_SOCKET; i ++)
 	{
@@ -581,7 +584,7 @@ static void lwModbusTask(void *pArg)
 					}
 					if( ++listen_count >= 2 && enableWatchdog == pdTRUE)
 					{
-						UARTprintf("listen timeout, reset \r\n");
+						//UARTprintf("listen timeout, reset \r\n");
 						vTaskDelay(500);
 						do_reboot();
 					}
@@ -690,11 +693,11 @@ static void lwModbusTask(void *pArg)
 										{
 											if(rtu_timeout_count++ > RTU_MAX_TIMEOUT)
 											{
-												UARTprintf("RTU reach max timeout, reboot\r\n");
+												//UARTprintf("RTU reach max timeout, reboot\r\n");
 												vTaskDelay(500);
 												do_reboot();
 											}
-											UARTprintf("RTU timeout %d\r\n", rtu_timeout_count);
+											//UARTprintf("RTU timeout %d\r\n", rtu_timeout_count);
 											continue;
 										}					
 										
@@ -702,7 +705,7 @@ static void lwModbusTask(void *pArg)
 										rc = lwip_send(master_socket, tcp_query, rc_len, MSG_NOSIGNAL);
 										if (rc < 0)
 										{
-											UARTprintf("send failed %d\r\n",rc);
+											//UARTprintf("send failed %d\r\n",rc);
 										}
 									}						
 								}
@@ -717,7 +720,7 @@ static void lwModbusTask(void *pArg)
 												break;
 											}
 										}
-										UARTprintf("Connection closed on socket %d at #%d\n", master_socket, i);
+										//UARTprintf("Connection closed on socket %d at #%d\n", master_socket, i);
                     /* Remove from reference set */
                     FD_CLR(master_socket, &refset);
 

@@ -61,7 +61,7 @@ void BSP_Init(void)
     //
     UARTStdioInit(1);
 #endif
-		UARTprintf("\r\n\r\nBSP initialise\r\n");
+		//UARTprintf("\r\n\r\nBSP initialise\r\n");
 		
 		user_epprom_init();
 		

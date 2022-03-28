@@ -30,7 +30,9 @@ typedef struct
 	unsigned long netmask;
 	unsigned long lifetime;
 	unsigned char mac[6];
-	uint8_t reserved[22];
+	unsigned short port;
+	uint8_t reserved[18];
+	unsigned short crc;
 }user_data_t;
 
 void user_epprom_init(void);

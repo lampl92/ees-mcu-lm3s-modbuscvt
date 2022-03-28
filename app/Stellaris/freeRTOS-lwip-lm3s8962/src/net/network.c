@@ -112,22 +112,22 @@ static void TcpClientMainProc(void)
 			vTaskDelay(300);
 		}while(0 == g_sClientIP.s_addr);
 		
-		UARTprintf("DEVICE INFO:\r\n");
+		//UARTprintf("DEVICE INFO:\r\n");
 		memset(str, 0, 16);
 		stringtoip(g_sClientIP.s_addr, str);
-		UARTprintf("IP: %s\r\n",str);
+		//UARTprintf("IP: %s\r\n",str);
 		
 		g_sClientIP.s_addr = lwIPLocalNetMaskGet();
 		memset(str, 0, 16);
 		stringtoip(g_sClientIP.s_addr, str);
-		UARTprintf("NetMask: %s\r\n",str);
+		//UARTprintf("NetMask: %s\r\n",str);
 		
 		g_sClientIP.s_addr = lwIPLocalGWAddrGet();
 		memset(str, 0, 16);
 		stringtoip(g_sClientIP.s_addr, str);
-		UARTprintf("GWAddr: %s\r\n",str);
+		//UARTprintf("GWAddr: %s\r\n",str);
 		g_bNetStatus = NETS_LOCIP;
-		UARTprintf("Free memory: %d\r\n", xPortGetFreeHeapSize());
+		//UARTprintf("Free memory: %d\r\n", xPortGetFreeHeapSize());
 		
 		modbus_init();
 		webserver_init();
@@ -143,7 +143,7 @@ static void TcpClientMainProc(void)
 				userdata.lifetime = 0;
 			userdata.lifetime++;
 			set_user_data(&userdata);
-			UARTprintf("lifetime : %u\r\n", userdata.lifetime);
+			//UARTprintf("lifetime : %u\r\n", userdata.lifetime);
 		}
 		break;
 
