@@ -28,19 +28,22 @@
 #include "mb_cvt.h"
 #include "user_epprom.h"
 #include "webserver.h"
+#include "io.h"
+#include "cmd.h"
 /* ------------------------------------------------------------------------------------------------------
  *											Local Variable
  * ------------------------------------------------------------------------------------------------------
  */
 #define COUNTER_LIFE_TIME_MIN		60 * 12
+#define BUTTON_RESET_TIMEOUT		300 // 300 * 10ms = 3s
 unsigned char MACAddress[] = My_Mac_ID;
 unsigned char IPAddress[] = MY_IP_ID;
 unsigned char NetMaskAddr[] = IP_MARK_ID;
 unsigned char GwWayAddr[] = MY_GATEWAY_ID;
 
 unsigned char g_bNetStatus;
-uint32_t	timer_count = 0;
-
+uint32_t	btn_cnt = 0;
+uint32_t	led_cnt = 0;
 void stringtoip(unsigned long ipaddr, char *str)
 {
     char pucBuf[16];
@@ -102,7 +105,7 @@ static void TcpClientMainProc(void)
 {
 	struct in_addr  g_sClientIP;
 	char str[16];
-	user_data_t userdata;
+	//user_data_t userdata;
 	switch(g_bNetStatus)
 	{
 	case NETS_INIT:
@@ -134,15 +137,31 @@ static void TcpClientMainProc(void)
 		break;
 
 	case NETS_LOCIP:
-		vTaskDelay(5000);
-		if (timer_count++ > COUNTER_LIFE_TIME_MIN)
+		if(++led_cnt == 50) {
+			led_cnt = 0;
+			if(GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_1))
+				LED_SYS_OFF;
+			else
+				LED_SYS_ON;
+		}
+		if(GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_3))
+			btn_cnt = 0;
+		else
+			btn_cnt++;
+		if (btn_cnt > BUTTON_RESET_TIMEOUT)
 		{
-			timer_count = 0;
+			btn_cnt = 0;
+			LED_SYS_ON;
+			LED_MODBUS_ON;
+			vTaskDelay(1000);
+			do_reboot();
+			/*
 			get_user_data(&userdata);
 			if(userdata.lifetime == 0xFFFFFFFF)
 				userdata.lifetime = 0;
 			userdata.lifetime++;
 			set_user_data(&userdata);
+			*/
 			//UARTprintf("lifetime : %u\r\n", userdata.lifetime);
 		}
 		break;

@@ -383,7 +383,7 @@ static void cmd_task(void *pArgs)
 	{
 		if(FIFO_GetCount(&rxFIFO) > 0)
 		{
-			FIFO_Recv(&rxFIFO, &Char, 1);			
+			FIFO_Recv(&rxFIFO, &Char, 1);						
 			if (rxIndex < INPUT_BUFER_SIZE)
 			{
 				if(Char  == '\r')
@@ -391,8 +391,10 @@ static void cmd_task(void *pArgs)
 proc:
 					if(rxIndex > 0)
 						rxbuf[rxIndex] = '\0';
+					/*test*/
 					//UARTprintf("\r\n");
 					CmdLineProcess(rxbuf);
+					/*test*/
 					//UARTprintf("\r\n>");
 					rxIndex = 0;
 				}
@@ -409,6 +411,7 @@ proc:
 				else
 				{
 					rxbuf[rxIndex++] = Char;
+					/*test*/
 					//UARTCharPut(CMD_UART_PORT, Char);
 				}
 			}

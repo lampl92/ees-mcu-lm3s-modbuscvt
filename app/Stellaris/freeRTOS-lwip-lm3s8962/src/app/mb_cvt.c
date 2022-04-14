@@ -246,6 +246,9 @@ void rtu_send(const uint8_t *req, int req_length)
 	/*
 	*TODO: add RTU send togge
 	*/
+  LED_MODBUS_ON;
+	MODBUS_DIR_SEND;
+	vTaskDelay(5);
 	while(len--)
 	{
 			//
@@ -253,6 +256,9 @@ void rtu_send(const uint8_t *req, int req_length)
 			//
 			UARTCharPut(UART1_BASE, *req++);
 	}
+	vTaskDelay(20);
+	MODBUS_DIR_RECV;
+	LED_MODBUS_OFF;
 	return;
 }
 ModbusError registerCallback(
@@ -519,6 +525,7 @@ static void lwModbusTask(void *pArg)
 	
 	//UARTprintf("RTU port init\r\n");
 	rtu_init();
+	MODBUS_DIR_RECV;
 	rtu_flush();
 		err = modbusMasterInit(
 		&master,
@@ -567,7 +574,7 @@ static void lwModbusTask(void *pArg)
         }
 				else if(rc == 0)
 				{
-					//UARTprintf("%u Free memory:%d \r\n", xTaskGetTickCount(), xPortGetFreeHeapSize()); // detect memleak
+						//UARTprintf("%u Free memory:%d \r\n", xTaskGetTickCount(), xPortGetFreeHeapSize()); // detect memleak
 					if(fdmax >0)
 					{
 						for(i = 0; i < MAX_CLIENT_SOCKET; i++)

@@ -133,7 +133,7 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4100</DriverSelection>
+            <DriverSelection>4099</DriverSelection>
           </Flash1>
           <bUseTDR>0</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
@@ -459,6 +459,11 @@
               <FileType>5</FileType>
               <FilePath>..\..\src\app\webserver.h</FilePath>
             </File>
+            <File>
+              <FileName>io.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\src\app\io.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -529,6 +534,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\src\drv\driverlib\watchdog.c</FilePath>
             </File>
+            <File>
+              <FileName>flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\host_lm3s8962\src\drv\driverlib\flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -558,6 +568,11 @@
               <FileName>crc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\src\drv\utils\crc.c</FilePath>
+            </File>
+            <File>
+              <FileName>flash_pb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\src\drv\utils\flash_pb.c</FilePath>
             </File>
           </Files>
         </Group>

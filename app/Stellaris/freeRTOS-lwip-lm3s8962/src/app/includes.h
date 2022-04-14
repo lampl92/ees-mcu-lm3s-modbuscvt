@@ -102,4 +102,5 @@
 #include "webserver.h"
 #include "cgifuncs.h"
 #include "httpd.h"
+#include "io.h"
 #endif
