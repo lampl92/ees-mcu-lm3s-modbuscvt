@@ -108,7 +108,11 @@ static const uint8_t table_crc_lo[] = {
     0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42,
     0x43, 0x83, 0x41, 0x81, 0x80, 0x40
 };
+tBoolean MasterHold;
 
+tBoolean getMasterState(void) {
+	return MasterHold;
+}
 void UARTIntHandler(void)
 {
     unsigned long ulStatus;
@@ -432,6 +436,7 @@ ModbusError masterExceptionCallback(const ModbusMaster *master, uint8_t address,
 void modbus_init(void)
 {
 		xTaskHandle xHandle;
+		MasterHold = false;
 		xTaskCreate(lwModbusTask, ( signed portCHAR * )"ModbusTask", TASK_LWIP_MODBUS_STACKSIZE, 
 				NULL, TASK_LWIP_MODBUS_PRIORITY, &xHandle);	
 }
@@ -666,9 +671,14 @@ static void lwModbusTask(void *pArg)
 									{
 										rtu_flush();
 										rc = rtu_send_msg_pre(&tcp_query[MODBUS_TCP_HEADER_LENGHT], rc - MODBUS_TCP_HEADER_LENGHT);
+										if (getClientState()) {
+											vTaskDelay(300);
+										}
+										MasterHold = true;
+										rtu_flush();
 										rtu_send(tcp_query + MODBUS_TCP_HEADER_LENGHT, rc);
 										memset(rtu_buffer, 0, MODBUS_RTU_MAX_ADU_LENGTH);
-										rc_len = rtu_recv(rtu_buffer, MODBUS_RTU_MAX_ADU_LENGTH, 700); // TODO: need to change to dynamic timeout
+										rc_len = rtu_recv(rtu_buffer, MODBUS_RTU_MAX_ADU_LENGTH, 500); // TODO: need to change to dynamic timeout
 #ifdef CVT_DEBUG	
 										UARTprintf("RTU RESP:<", rc_len);	
 										for(i = 0; i < rc_len; i++) 
@@ -679,6 +689,7 @@ static void lwModbusTask(void *pArg)
 #endif
 										// Let the master parse the response
 										// Parse response
+										MasterHold = false;
 										err = modbusParseResponseRTU(
 											&master,
 											tcp_query + MODBUS_TCP_HEADER_LENGHT,

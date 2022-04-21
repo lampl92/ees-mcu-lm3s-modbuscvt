@@ -90,8 +90,8 @@ static void prvStartTask(void *pvParameters)
 
 	NetServerInit();
 	
-	cmd_init();
-	
+	//cmd_init();
+	comm_init();
 	for (;;)
 	{
 		vTaskSuspend( NULL );			

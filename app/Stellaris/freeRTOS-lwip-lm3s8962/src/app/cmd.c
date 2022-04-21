@@ -36,30 +36,6 @@ int validate_ip(char *ip) { //check whether the IP is valid or not
       return 1;
 }
 
-void UART0IntHandler(void)
-{
-    unsigned long ulStatus;
-    //
-    // Get the interrrupt status.
-    //
-    ulStatus = UARTIntStatus(CMD_UART_PORT, true);
-
-    //
-    // Clear the asserted interrupts.
-    //
-    UARTIntClear(CMD_UART_PORT, ulStatus);
-
-    //
-    // Loop while there are characters in the receive FIFO.
-    //
-    while(UARTCharsAvail(CMD_UART_PORT))
-    {
-        //
-        // Read the next character from the UART and write it back to the UART.
-        //
-		FIFO_Push(&rxFIFO, UARTCharGetNonBlocking(CMD_UART_PORT));
-    }
-}
 int ProcessHelp(int argc, char *argv[]);
 int network_config(int argc, char *argv[]);
 int system_reboot(int argc, char *argv[]);
@@ -271,7 +247,7 @@ int do_rtuconfig(int argc, char *argv[])
 			user_data.databits == UART_CONFIG_WLEN_5 ? 5: user_data.databits == UART_CONFIG_WLEN_6 ? 6 : user_data.databits == UART_CONFIG_WLEN_7 ? 7 : user_data.databits == UART_CONFIG_WLEN_8? 8 : 0);
 		
 		UARTprintf("\"Parity\":\"%s\",", 
-			UART_CONFIG_PAR_NONE ? "N" : user_data.parity == UART_CONFIG_PAR_ODD ? "O": UART_CONFIG_PAR_EVEN ? "E": "unknown");			
+			user_data.parity == UART_CONFIG_PAR_NONE ? "N" : user_data.parity == UART_CONFIG_PAR_ODD ? "O": user_data.parity == UART_CONFIG_PAR_EVEN ? "E": "unknown");			
 		
 		UARTprintf("\"Stopbits\":%d,", user_data.stopbits == UART_CONFIG_STOP_ONE ? 1 : user_data.stopbits == UART_CONFIG_STOP_TWO ? 2 : 0);
 		

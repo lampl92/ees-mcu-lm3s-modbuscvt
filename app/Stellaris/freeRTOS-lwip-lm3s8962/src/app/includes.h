@@ -103,4 +103,5 @@
 #include "cgifuncs.h"
 #include "httpd.h"
 #include "io.h"
+#include "comm.h"
 #endif
